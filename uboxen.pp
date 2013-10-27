@@ -6,7 +6,7 @@ Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
 
 Vcsrepo {
   provider	=> git,
-  require	=> [ Package['git'], Exec['forge-vcsrepo'] ],
+  require	=> Package['git'],
 }
 
 include etckeeper
