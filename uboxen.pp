@@ -81,10 +81,10 @@ $git_email='lorenzo.salvadorini@softecspa.it'
 # TODO: manage username with hiera
 exec { "sudo -u $unix_user git config --global user.name \"${git_user}\"":
   require 	=> Package['git'],
-  unless	=> "sudo -u $unix_user test `git config --global user.name` = ${git_user}",
+  unless	=> "sudo -u $unix_user test `sudo -u $unix_user git config --global user.name` = ${git_user}",
 }
 exec { "sudo -u $unix_user git config --global user.email \"${git_email}\"":
-  unless	=> "sudo -u $unix_user test `git config --global user.email` = ${git_email}",
+  unless	=> "sudo -u $unix_user test `sudo -u $unix_user git config --global user.email` = ${git_email}",
   require 	=> Package['git'],
 }
 
@@ -135,7 +135,8 @@ file { '/usr/local/bin/composer':
 }
 
 exec { "$composer_path self-update":
-  onlyif 	=> "/usr/bin/test -f $composer_path",
+  onlyif 	=> "[ \"$(( $(date +\"%s\") - $(stat -c \"%Y\" ${composer_path}\" -gt \"86400\" ] && true",
+  require	=> File[$composer_path],
 }
 
 
@@ -176,3 +177,34 @@ apt::source { 'virtualbox':
   include_src   => true,
 }
 
+
+# Vim pathogen setup
+file { [ 
+  "${home}/.vim", 
+  "${home}/.vim/autoload", 
+  "${home}/.vim/bundle" ]:
+  ensure	=> directory,
+  owner 	=> $unix_user,
+  mode		=> 775
+}
+
+$pathogen_url="https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim"
+exec { 'pathogen':
+  command	=> "curl -Sso ${home}/.vim/autoload/pathogen.vim $pathogen_url",
+  require 	=> [ Package['curl'], File["${home}/.vim/autoload"] ],
+  creates	=> "${home}/.vim/autoload/pathogen.vim",
+}
+
+# Vim colorscheme - http://ethanschoonover.com/solarized
+vcsrepo { "${home}/.vim/bundle/vim-colors-solarized":
+  ensure => present,
+  source => 'git://github.com/altercation/vim-colors-solarized.git',
+}
+exec { 'vim-colorscheme':
+  command	=> "echo 'colorscheme solarized' >> ${home}/.vimrc",
+  unless	=> "grep solarized ${home}/.vimrc",
+}
+exec { 'vim-background':
+  command	=> "echo 'set background=dark' >> ${home}/.vimrc",
+  unless	=> "grep 'set background=dark' ${home}/.vimrc",
+}
