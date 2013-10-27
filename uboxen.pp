@@ -73,6 +73,17 @@ file { '/etc/puppet/hiera.yaml':
 }
 
 
+# Git config
+# TODO: manage username with hiera
+exec { "git config --global user.name \"LoreLLo\"":
+  require 	=> Package['git'],
+}
+exec { "git config --global user.email \"lorenzo.salvadorini@softecspa.it\"":
+  require 	=> Package['git'],
+}
+
+
+
 # PHP development env
 package {
   'php5-cli':;
