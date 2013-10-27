@@ -72,18 +72,42 @@ file { '/etc/puppet/hiera.yaml':
   require	=> Package['ruby-hiera'],
 }
 
+$unix_user='lorello'
+$home="/home/${unix_user}"
+$git_user='LoreLLo'
+$git_email='lorenzo.salvadorini@softecspa.it'
 
 # Git config
 # TODO: manage username with hiera
-exec { "git config --global user.name \"LoreLLo\"":
+exec { "sudo -u $unix_user git config --global user.name \"${git_user}\"":
+  require 	=> Package['git'],
+  unless	=> "sudo -u $unix_user test `git config --global user.name` = ${git_user}",
+}
+exec { "sudo -u $unix_user git config --global user.email \"${git_email}\"":
+  unless	=> "sudo -u $unix_user test `git config --global user.email` = ${git_email}",
   require 	=> Package['git'],
 }
-exec { "git config --global user.email \"lorenzo.salvadorini@softecspa.it\"":
-  require 	=> Package['git'],
+
+
+
+
+# .dotfile management setup with homeshick
+file { 
+  [ "${home}/.homesick/repos/homeshick",
+    "${home}/.homesick",
+    "${home}/.homesick/repos"  ]:
+  owner => $unix_user,
 }
-
-
-
+vcsrepo { "${home}/.homesick/repos/homeshick":
+  ensure	=> present,
+  source	=> 'git://github.com/andsens/homeshick.git',
+}
+exec { "printf '\\nalias homeshick=\"source \$HOME/.homesick/repos/homeshick/bin/homeshick.sh\"' >> ${home}/.bash_aliases":
+  unless	=> "/bin/grep homeshick ${home}/.bash_aliases",
+}
+file { "${home}/.bash_aliases":
+  owner	=> $unix_user,
+}
 # PHP development env
 package {
   'php5-cli':;
@@ -146,7 +170,7 @@ apt::source { 'google':
 
 apt::source { 'virtualbox':
   location  	=> 'http://download.virtualbox.org/virtualbox/debian',
-  release     	=> 'raring',
+  release     	=> 'raring',	# saucy still not available?
   repos     	=> 'contrib',
   key           => '7FAC5991',
   include_src   => true,
