@@ -1,0 +1,25 @@
+#!/bin/bash
+
+function forge()
+{
+  AUTHOR=$1
+  MODULE=$2
+  [ ! -d /etc/puppet/modules/$MODULE ] && sudo puppet module install $AUTHOR/$MODULE
+}
+
+function etckeep()
+{
+  MSG=$1
+  [ -x /usr/bin/etckeeper ] && sudo etckeeper commit "$MSG" 
+}
+
+forge puppetlabs stdlib
+forge puppetlabs inifile
+forge puppetlabs apt 
+forge puppetlabs vcsrepo 
+forge saz sudo
+forge thomasvandoren etckeeper
+
+etckeep "Before uBoxen run"
+sudo puppet apply ./uboxen.pp
+etckeep "After uBoxen run"
