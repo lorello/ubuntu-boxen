@@ -78,7 +78,7 @@ $git_user='LoreLLo'
 $git_email='lorenzo.salvadorini@softecspa.it'
 
 # Git config
-# TODO: manage username with hiera
+# TODO: manage user details with hiera
 exec { "sudo -u $unix_user git config --global user.name \"${git_user}\"":
   require 	=> Package['git'],
   unless	=> "sudo -u $unix_user test `sudo -u $unix_user git config --global user.name` = ${git_user}",
@@ -92,11 +92,13 @@ exec { "sudo -u $unix_user git config --global user.email \"${git_email}\"":
 
 
 # .dotfile management setup with homeshick
+# https://github.com/andsens/homeshick
 file { 
   [ "${home}/.homesick/repos/homeshick",
     "${home}/.homesick",
     "${home}/.homesick/repos"  ]:
   owner => $unix_user,
+  recurse => true,
 }
 vcsrepo { "${home}/.homesick/repos/homeshick":
   ensure	=> present,
@@ -108,6 +110,15 @@ exec { "printf '\\nalias homeshick=\"source \$HOME/.homesick/repos/homeshick/bin
 file { "${home}/.bash_aliases":
   owner	=> $unix_user,
 }
+# check if all managed files are updated
+exec { "printf '\\nhomeshick --quiet refresh' >> ${home}/.bashrc":
+  unless	=> "/bin/grep 'homeshick --quiet refresh' ${home}/.bashrc",
+}
+
+
+
+
+
 # PHP development env
 package {
   'php5-cli':;
