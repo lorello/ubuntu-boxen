@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# get a module from puppet-forge
 function forge()
 {
   AUTHOR=$1
@@ -7,6 +8,7 @@ function forge()
   [ ! -d /etc/puppet/modules/$MODULE ] && sudo puppet module install $AUTHOR/$MODULE
 }
 
+# support for etckeeper
 function etckeep()
 {
   MSG=$1
@@ -17,9 +19,18 @@ forge puppetlabs stdlib
 forge puppetlabs inifile
 forge puppetlabs apt 
 forge puppetlabs vcsrepo 
+forge puppetlabs concat 
 forge saz sudo
 forge thomasvandoren etckeeper
+forge garethr docker 
+forge willdurand composer 
+forge huskycode vim 
+
+MYPATH=$(dirname $0)
 
 etckeep "Before uBoxen run"
-sudo puppet apply ./uboxen.pp
+sudo puppet apply -d
+#$MYPATH/uboxen.pp
 etckeep "After uBoxen run"
+
+
