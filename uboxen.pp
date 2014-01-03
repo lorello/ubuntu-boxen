@@ -1,221 +1,482 @@
+# .dotfile management setup with homeshick
+# https://github.com/andsens/homeshick
+class homeshick($username)
+{
+  validate_string($username)
+  $userhome = "/home/${username}"
+  validate_absolute_path($userhome)
+  
+  file { "${userhome}/.homesick" :
+    ensure        => directory,
+    owner         => $username,
+    recurse       => true,
+  }
 
-# General DEFAULTS
-Package { ensure => latest }
+  vcsrepo { "${userhome}/.homesick/repos/homeshick" :
+    ensure      => present,
+    source      => 'git://github.com/andsens/homeshick.git',
+    provider    => git,
+    require     => Package['git'],
+  }
 
-Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
+  bash::rc { 'homeshick command':
+    content => '[ -d ~/.homesick ] && source ~/.homesick/repos/homeshick/bin/homeshick.sh',
+  }
 
-Vcsrepo {
-  provider	=> git,
-  require	=> Package['git'],
+  # onlogin check if all managed files are updated
+  bash::rc { 'homeshick refresh':
+    content => '[ -d ~/.homesick ] && homeshick --quiet refresh',
+  }
+
+  motd::usernote { 'homeshick':
+    content       => "dotfiles are managed by homeshick, for more info https://github.com/andsens/homeshick",
+  }
+
+  # basic setup for the first use:
+  # homeshick generate dotfiles
+  # homeshick track dotfiles ~/.bashrc
+  exec { "homeshick clone ${username}/dotfiles":
+    creates       => "${userhome}/.homesick/repos/dotfiles",
+  }
+  exec { "homeshick clone ${username}/scripts":
+    creates       => "${userhome}/.homesick/repos/scripts",
+  }
 }
-
-include etckeeper
-include apt 
 
 # dnsmasq on a desktop is managed by network manager
 # no modules on forge manage this
 define dnsmasq::conf($value=''){
   file { "/etc/NetworkManager/dnsmasq.d/${name}":
     content => $value ? { 
-      '' 	=> "${name}", 
-      default 	=> "${name}=${value}",
+    '' 	=> "${name}", 
+    default 	=> "${name}=${value}",
     }
   }
 }
 
-# General dns conf
-dnsmasq::conf { 'no-negcache': }
+# MTP Support to mount Android Devices
+class mtp {
+  package { [ 'mtp-tools', 'mtpfs' ] :
+    ensure => latest,
+  }
 
-# Debugging dnsmasq conf
-dnsmasq::conf { 'log-queries': }
-dnsmasq::conf { 'log-async': value => 25 }
-
-# Dev Environment
-dnsmasq::conf { 'address': value => '/dev.it/127.0.1.1' }
-
-
-# Security
-class { 'sudo': 
-  require	=> Package['ruby-hiera'],
+  # missing: add-apt-repository ppa:langdalepl/gvfs-mtp
 }
 
-sudo::conf { 'lorello':
-  priority => 10,
-  content  => 'lorello ALL=(ALL) NOPASSWD: ALL',
+
+define motd::usernote($content = '') {
+  file { "/etc/update-motd.d/60-${name}":
+    content  => $content,
+  }
 }
 
-# Common utilities
-package {
-  'puppet':;
-  'vim-puppet':;
-  'ruby-hiera':;
+define git::config(
+  $section='', 
+  $key='', 
+  $value, 
+  $user='')
+{
 
-  'vim':;
-  'htop':;
-  'ipcalc':;
-  'hwdata':;
-  'network-manager-openvpn':;
-  'python-pip':; 
-  'p7zip':;
-  'git':;
-  'aptitude':;
-  'curl':;
-# Multimedia stuff for RaiSmith project
-  'mplayer':;
-  'faad':;
+  include git
 
+  if empty($user)
+  {
+    $real_command = "git config --system"
+  } else {
+    validate_string($user)
+    $real_command = "sudo -u ${user} git config --global"
+  }
+
+  if empty($section) and empty($key) {
+    validate_re($name, '^\w+\.\w+$')
+    $real_section_key = $name
+  } else {
+    $real_section_key = "${section}.${key}" 
+  }
+
+  exec { $real_section_key:
+    command => "${real_command} ${real_section_key} \"$value\"",
+    unless  => "test \"`${real_command} ${real_section_key}`\" = \"${value}\"",
+    require => Package['git'],
+  }
 }
 
-# Puppet config
-file { '/etc/puppet/hiera.yaml':
-  content	=> '---',
-  require	=> Package['ruby-hiera'],
-}
-
-$unix_user='lorello'
-$home="/home/${unix_user}"
-$git_user='LoreLLo'
-$git_email='lorenzo.salvadorini@softecspa.it'
-
-# Git config
-# TODO: manage user details with hiera
-exec { "sudo -u $unix_user git config --global user.name \"${git_user}\"":
-  require 	=> Package['git'],
-  unless	=> "sudo -u $unix_user test `sudo -u $unix_user git config --global user.name` = ${git_user}",
-}
-exec { "sudo -u $unix_user git config --global user.email \"${git_email}\"":
-  unless	=> "sudo -u $unix_user test `sudo -u $unix_user git config --global user.email` = ${git_email}",
-  require 	=> Package['git'],
+class git {
+  package { 'git': ensure => latest }
 }
 
 
 
+class bash {
 
-# .dotfile management setup with homeshick
-# https://github.com/andsens/homeshick
-file { 
-  [ "${home}/.homesick/repos/homeshick",
-    "${home}/.homesick",
-    "${home}/.homesick/repos"  ]:
-  owner => $unix_user,
-  recurse => true,
-}
-vcsrepo { "${home}/.homesick/repos/homeshick":
-  ensure	=> present,
-  source	=> 'git://github.com/andsens/homeshick.git',
-}
-exec { "printf '\\nalias homeshick=\"source \$HOME/.homesick/repos/homeshick/bin/homeshick.sh\"' >> ${home}/.bash_aliases":
-  unless	=> "/bin/grep homeshick ${home}/.bash_aliases",
-}
-file { "${home}/.bash_aliases":
-  owner	=> $unix_user,
-}
-# check if all managed files are updated
-exec { "printf '\\nhomeshick --quiet refresh' >> ${home}/.bashrc":
-  unless	=> "/bin/grep 'homeshick --quiet refresh' ${home}/.bashrc",
+  package { [ 'bash', 'bash-completion', 'command-not-found' ] :
+    ensure => latest,
+  }
+
+  file { '/etc/profile.d/load-puppet-profile.sh':
+    content => "# file generated by puppet\n[ -f ~/.bashrc.puppet ] && source ~/.bashrc.puppet\n",
+  }
+
 }
 
+# if user specified add config to ~/.bashrc.puppet
+# else add config to system-wide bashrc.puppet.sh
+define bash::rc(
+  $content = '', 
+  $user = undef,
+) {
+  validate_string($content)
 
+  $real_content = $content ? {
+    ''      => $name,
+    default => "# $name\n$content",
+  }
 
+  if $user {
+    validate_string($user)
+    $real_target = "/home/$user/.bashrc.puppet"
+    validate_absolute_path($real_target)
+  } else {
+    $real_target  = '/etc/profile.d/bashrc.puppet.sh'
+  }
 
+  if ! defined(Concat[$real_target]) {
+    concat { $real_target : }
+    concat::fragment { 'systemwide-bashrc-header':
+      content => "# file generated by Puppet\n\n",
+      target  => $real_target,
+      order   => '00',
+    }
+  }
 
-# PHP development env
-package {
-  'php5-cli':;
-  'php5-json':;
-}
-
-$composer_path='/usr/share/php/composer.phar'
-
-file { '/usr/share/php':
-  ensure	=> directory,
-}
-
-exec { "/usr/bin/curl http://getcomposer.org/composer.phar -o $composer_path":
-  creates 	=> $composer_path,
-  require 	=> [ File['/usr/share/php'], Package['curl'] ],
-}
-
-file { $composer_path:
-  mode	=>	'u=rwx,o=rx', 
-}
-
-file { '/usr/local/bin/composer':
-  ensure	=> link,
-  target	=> $composer_path,
-}
-
-exec { "$composer_path self-update":
-  onlyif 	=> "[ \"$(( $(date +\"%s\") - $(stat -c \"%Y\" ${composer_path}\" -gt \"86400\" ] && true",
-  require	=> File[$composer_path],
+  concat::fragment { $name:
+    target  => $real_target,
+    content => "$real_content\n\n",
+  }
 }
 
 
-# PaaS
-package { 'dotcloud': 
-  provider 	=> 'pip',
-  ensure 	=> 'latest',
+node generic_desktop {
+
+  # General DEFAULTS
+  Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
+
+  include etckeeper
+  include apt
+
+  # General dns conf
+  dnsmasq::conf { 'no-negcache': }
+
+  # Debugging dnsmasq conf
+  # dnsmasq::conf { 'log-queries': }
+  # dnsmasq::conf { 'log-async': value => 25 }
+
+  # Dev Environment
+  dnsmasq::conf { 'address': value => '/dev.it/127.0.1.1' }
+  motd::usernote { 'dnsmasq':
+    content => "Domain dev.it points to localhost, use it for your dev environments",
+  }
+
+  # Security
+  class { 'sudo': 
+    require	=> Package['ruby-hiera'],
+  }
+  sudo::conf { 'wheel-group':
+    priority => 10,
+    content  => "%wheel ALL=(ALL) NOPASSWD: ALL",
+  }
+  group { 'wheel':
+    ensure => 'present',
+  }
+
+  # Common utilities
+  $common_packages = [
+    'puppet',
+    'ruby-hiera',
+    'htop',
+    'ipcalc',
+    'hwdata',
+    'python-pip',
+    'p7zip',
+    'subversion',
+    'aptitude',
+    'ppa-purge',
+    'curl',
+    'pwgen',
+    'nmap',
+    'tcpdump',
+    'ec2-api-tools',
+  ]
+  package { $common_packages : ensure => latest }
+
+  # Puppet config
+  file { '/etc/puppet/hiera.yaml':
+    content	=> '---',
+    require	=> Package['ruby-hiera'],
+  }
+
+  # PHP development env
+  package {
+    'php5-cli':;
+    'php5-json':;
+    'php5-curl':;
+  }
+
+  class { 'composer':
+    require => Package ['php5-curl'],
+  }
+
+  # PaaS
+  package { 'dotcloud': 
+    provider 	=> 'pip',
+    ensure 	  => 'latest',
+  }
+
+  include docker
+  include vagrant 
+
+  package { 'skype':
+    require => Apt::Source['canonical-partner'],
+  }
+
+  apt::source { 'canonical-partner':
+    location  => 'http://archive.canonical.com/ubuntu',
+    repos     => 'partner',
+    include_src       => true
+  }
+
+  # Google 
+  apt::source { 'google-chrome':
+    location  	=> 'http://dl.google.com/linux/chrome/deb/',
+    release   	=> 'stable',
+    key           => '7FAC5991',
+    include_src   => false,
+  }
+  apt::source { 'google-talkplugin':
+    location  	=> 'http://dl.google.com/linux/talkplugin/deb/',
+    release   	=> 'stable',
+    key           => '7FAC5991',
+    include_src   => false,
+  }
+
+
+  package { 'dkms': 		      ensure	=> latest }
+
+  package { 'gedit':          ensure => latest }
+  wget::fetch { 'gedit-solarized-theme-dark':
+    source      => 'https://raw.github.com/altercation/solarized/master/gedit/solarized-dark.xml',
+    destination => '/usr/share/gtksourceview-3.0/styles/solarized-dark.xml',
+    require     => Package['gedit'],
+  }
+  wget::fetch { 'gedit-solarized-theme-light':
+    source      => 'https://raw.github.com/altercation/solarized/master/gedit/solarized-light.xml',
+    destination => '/usr/share/gtksourceview-3.0/styles/solarized-light.xml',
+    require     => Package['gedit'],
+  }
+
+  bash::rc { 'Add user bin to path':
+    content => 'export PATH=~/bin:$PATH',
+  }
+ 
+  bash::rc { 'Set terminal to hicolor in X':
+    content => '[ -n "$DISPLAY" -a "$TERM" == "xterm" ] && export TERM=xterm-256color',
+  }
+
+  bash::rc { 'HISTTIMEFORMAT="[%Y-%m-%d - %H:%M:%S] "': }
+  bash::rc { 'alias ll="ls -lv --group-directories-first"': }
+  bash::rc { 'alias rm="rm -i"': }
+  bash::rc { 'alias mv="mv -i"': }
+  bash::rc { 'alias mkdir="mkdir -p"': }
+  bash::rc { 'alias df="df -kTh"': }
+  bash::rc { 'alias ..="cd .."': }
+  bash::rc { 'alias svim="sudo vim"': }
+  bash::rc { 'Sort by date, most recent last': content => 'alias lt="ls -ltr"' }
+  bash::rc { 'Sort by size, biggest last': content => 'alias lk="ls -lSr"' }
+  bash::rc { 'alias grep="grep --color=always"': }
+ 
+  bash::rc { 'alias update="sudo apt-get update"': }
+  bash::rc { 'alias upgrade="update && sudo apt-get upgrade"': }
+  bash::rc { 'alias install="sudo apt-get install"': }
+
+  bash::rc { 'alias netscan="nmap -A -sP"': }
+  bash::rc { 'alias netscan0="nmap -A -PN"': }
+  bash::rc { 'alias hostscan="nmap -A -T4"': }
+  
+  bash::rc { 'alias goodpass="pwgen -scnvB -C 16 -N 1"': }
+  bash::rc { 'alias goodpass8="pwgen -scnvB -C 8 -N 1"': }
+  bash::rc { 'alias strongpass="pwgen -scynvB -C 16 -N 1"': }
+  bash::rc { 'alias strongpass8="pwgen -scynvB -C 8 -N 1"': }
+
+  bash::rc { 'Command-line calculator': 
+    content => "calc (){\n\techo \"\$*\" | bc -l;\n}",
+  }
+
+  git::config { 'alias.up' :              value => 'pull origin' }
+  git::config { 'core.sharedRepository':  value => 'group' }
+  git::config { 'color.interactive':      value => 'auto' }
+  git::config { 'color.showbranch':       value => 'auto' }
+  git::config { 'color.status' :          value => 'auto' }
+
 }
 
 
-package { 'skype':
-  require => Apt::Source['canonical-partner'],
+class vagrant {
+
+  package { 'virtualbox': ensure	=> latest }
+  package { 'vagrant': 		    ensure	=> latest }
+
+  bash::rc { 'alias vu="vagrant up"' : }
+  bash::rc { 'alias vs="vagrant suspend"' : }
+
 }
 
-apt::source { 'canonical-partner':
-  location  => 'http://archive.canonical.com/ubuntu',
-  #release   => $lsbdistcodename,
-  repos     => 'partner',
-  include_src       => true
+define vagrant::box(
+  $source,
+  $username = 'root',
+){
+
+  include vagrant
+
+  $home = $username ? {
+    'root'  => '/root',
+    default => "/home/${username}"
+  }
+ 
+  if ! defined(File['vagrant-home']) {
+    file { 'vagrant-home':
+      path   => "${home}/vagrant",
+      owner  => $username,
+      ensure => directory,
+    }
+  }
+ 
+  vcsrepo { "${home}/vagrant/${name}":
+    source   => $source,
+    ensure   => present,
+    provider => git,
+    require  => Package['git'],
+  }
+
+  file { "${home}/vagrant/${name}":
+    owner   => $username,
+    recurse => true,
+  }
 }
 
-apt::source { 'google':
-  location  => 'http://dl.google.com/linux/chrome/deb/',
-  release   => 'stable',
-  #repos     => 'main',
-  #required_packages => 'debian-keyring debian-archive-keyring',
-  key               => '7FAC5991',
-  #key_server        => 'subkeys.pgp.net',
-  #pin               => '-10',
-  include_src       => true
-}
 
-apt::source { 'virtualbox':
-  location  	=> 'http://download.virtualbox.org/virtualbox/debian',
-  release     	=> 'raring',	# saucy still not available?
-  repos     	=> 'contrib',
-  key           => '7FAC5991',
-  include_src   => true,
-}
+node "motoko.qui.it" inherits generic_desktop {
+
+  $unix_user = 'lorello'
+  $unix_home = "/home/${unix_user}"
+  $email     = 'lorenzo.salvadorini@softecspa.it'
+
+  file { "$unix_home/.xprofile" :
+    content => "SYSRESOURCES=/etc/X11/Xresources\nUSRRESOURCES=\$HOME/.Xresources\n",
+    owner    => $unix_user,
+  }
+
+  git::config { 'user.name' : user => $unix_user, value => $unix_user }
+  git::config { 'user.email': user => $unix_user, value => $email }
+
+  sudo::conf { $unix_user:
+    priority => 10,
+    content  => "${unix_user} ALL=(ALL) NOPASSWD: ALL",
+  }
+ 
+  user { $unix_user :
+    groups => [ 'adm', 'sudo', 'wheel' ],
+  }
+ 
+  class { 'homeshick':
+    username => $unix_user,
+  }
+
+  class { 'vim':
+    user	=> $unix_user,
+    home_dir => $unix_home,
+  }
+
+  # Vim colorscheme - http://ethanschoonover.com/solarized
+  vim::plugin { 'colors-solarized':
+    source => 'https://github.com/altercation/vim-colors-solarized.git',
+  }
+  vim::plugin { 'colors-monokai':
+    source => 'https://github.com/sickill/vim-monokai.git',
+  }
+  vim::plugin { 'colors-gruvbox':
+    source => 'https://github.com/morhetz/gruvbox.git',
+  }
+  vim::rc { 'sane-text-files':
+    content => "set fileformat=unix\nset encoding=utf-8",
+  }
+  vim::rc { 'set number': }
+  vim::rc { 'set tabstop=2': }
+  vim::rc { 'set shiftwidth=2': }
+  vim::rc { 'set softtabstop=2': }
+  vim::rc { 'set expandtab': }
+  
+  vim::rc { 'set pastetoggle=<F6>': }
+
+  vim::rc { 'intuitive-split-positions': 
+    content => "set splitbelow\nset splitright",
+  }
+
+  vim::rc { 'silent! colorscheme solarized': }
+  #vim::rc { 'silent! colorscheme monokai': }
+  vim::rc { 'background-x-gui':
+    content => "if has('gui_running')\n\tset background=light\nelse\n\tset background=dark\nendif",
+  }
+  # Vim plugin: syntastic
+  vim::plugin { 'syntastic':
+    source => 'https://github.com/scrooloose/syntastic.git',
+  }
+  vim::plugin { 'tabular':
+    source => 'https://github.com/godlygeek/tabular.git',
+  }
+  vim::plugin { 'snippets':
+    source => 'https://github.com/honza/vim-snippets.git',
+  }
+  vim::plugin { 'puppet':
+    source => 'https://github.com/rodjek/vim-puppet.git',
+    require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
+  }
+  vim::plugin { 'enhanced-status-line':
+    source => 'https://github.com/millermedeiros/vim-statline.git',
+  }
+
+  vim::plugin { 'nerdtree-and-tabs-together':
+    source => 'https://github.com/jistr/vim-nerdtree-tabs.git',
+  }
+  vim::rc { 'nerdtree-start-on-console':
+    content => 'let g:nerdtree_tabs_open_on_console_startup=1',
+  }
+
+  vim::plugin { 'tasklist':
+    source => 'https://github.com/superjudge/tasklist-pathogen.git',
+  }
+
+  #vim::plugin { 'rainbow-parenthesis':
+  #  source => 'https://github.com/oblitum/rainbow.git',
+  #}
+  vim::rc { 'activate rainbow parenthesis globally':
+    content => 'let g:rainbow_active = 1',
+  }
+
+  vagrant::box { 'hhvm':
+    source   => 'https://github.com/javer/hhvm-vagrant-vm',
+    username => $unix_user,
+  }
 
 
-# Vim pathogen setup
-file { [ 
-  "${home}/.vim", 
-  "${home}/.vim/autoload", 
-  "${home}/.vim/bundle" ]:
-  ensure	=> directory,
-  owner 	=> $unix_user,
-  mode		=> 775
-}
 
-$pathogen_url="https://raw.github.com/tpope/vim-pathogen/master/autoload/pathogen.vim"
-exec { 'pathogen':
-  command	=> "curl -Sso ${home}/.vim/autoload/pathogen.vim $pathogen_url",
-  require 	=> [ Package['curl'], File["${home}/.vim/autoload"] ],
-  creates	=> "${home}/.vim/autoload/pathogen.vim",
-}
+  # Multimedia stuff for RaiSmith project
+  $multimedia_packages = [ 'mplayer', 'faad' ]
+  $utils_packages = [ 'network-manager-openvpn' ]
+  $others = [ 'ubuntu-restricted-extras', 'qviaggiatreno' ]
+  package { [ $multimedia_packages, $utils_packages, $others ]: ensure => latest }
 
-# Vim colorscheme - http://ethanschoonover.com/solarized
-vcsrepo { "${home}/.vim/bundle/vim-colors-solarized":
-  ensure => present,
-  source => 'git://github.com/altercation/vim-colors-solarized.git',
-}
-exec { 'vim-colorscheme':
-  command	=> "echo 'colorscheme solarized' >> ${home}/.vimrc",
-  unless	=> "grep solarized ${home}/.vimrc",
-}
-exec { 'vim-background':
-  command	=> "echo 'set background=dark' >> ${home}/.vimrc",
-  unless	=> "grep 'set background=dark' ${home}/.vimrc",
+  # picasa
+  package { [ 'wine', 'winetricks']:  ensure => latest }
+
+
 }
