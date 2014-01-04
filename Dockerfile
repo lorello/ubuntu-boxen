@@ -6,5 +6,7 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 RUN apt-get install -y puppet curl
-RUN curl https://raw.github.com/lorello/ubuntu-boxen/master/install.sh | sh
-RUN uboxen
+RUN apt-get install -y git sudo
+RUN cd /opt && git clone https://github.com/lorello/ubuntu-boxen.git
+RUN ln -s /opt/ubuntu-boxen/uboxen /usr/local/bin/uboxen
+RUN /opt/ubuntu-boxen/uboxen 
