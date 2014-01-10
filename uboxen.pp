@@ -364,7 +364,7 @@ define vagrant::box(
 }
 
 
-node "motoko.qui.it" inherits generic_desktop {
+node default inherits generic_desktop {
 
   $unix_user = 'lorello'
   $unix_home = "/home/${unix_user}"

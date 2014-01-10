@@ -5,7 +5,11 @@ function forge()
 {
   AUTHOR=$1
   MODULE=$2
-  [ ! -d /etc/puppet/modules/$MODULE ] && sudo puppet module install $AUTHOR/$MODULE
+  if [ ! -d /etc/puppet/modules/$MODULE ]; then
+    sudo puppet module install $AUTHOR/$MODULE
+  else
+    sudo puppet module upgrade $AUTHOR/$MODULE
+  fi
 }
 
 # support for etckeeper
@@ -29,8 +33,7 @@ forge huskycode vim
 MYPATH=$(dirname $0)
 
 etckeep "Before uBoxen run"
-sudo puppet apply -d
-#$MYPATH/uboxen.pp
+sudo puppet apply $MYPATH/uboxen.pp 
 etckeep "After uBoxen run"
 
-
+exit 0
