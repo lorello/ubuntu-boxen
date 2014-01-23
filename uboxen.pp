@@ -155,39 +155,13 @@ define bash::rc(
   }
 }
 
-
-node generic_desktop {
+node generic_host {
 
   # General DEFAULTS
   Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
 
   include etckeeper
   include apt
-
-  # General dns conf
-  dnsmasq::conf { 'no-negcache': }
-
-  # Debugging dnsmasq conf
-  # dnsmasq::conf { 'log-queries': }
-  # dnsmasq::conf { 'log-async': value => 25 }
-
-  # Dev Environment
-  dnsmasq::conf { 'address': value => '/dev.it/127.0.1.1' }
-  motd::usernote { 'dnsmasq':
-    content => "Domain dev.it points to localhost, use it for your dev environments",
-  }
-
-  # Security
-  class { 'sudo': 
-    require	=> Package['ruby-hiera'],
-  }
-  sudo::conf { 'wheel-group':
-    priority => 10,
-    content  => "%wheel ALL=(ALL) NOPASSWD: ALL",
-  }
-  group { 'wheel':
-    ensure => 'present',
-  }
 
   # Common utilities
   $common_packages = [
@@ -216,11 +190,27 @@ node generic_desktop {
   }
 
   # PHP development env
-  package {
-    'php5-cli':;
-    'php5-json':;
-    'php5-curl':;
+
+  include php
+
+  Package['php5-dev'] -> Php::Extension <| |> -> Php::Config <| |>
+
+  class { 
+    'php::cli':;
+    'php::dev':;
+    #'php::fpm':;
+    'php::pear':;
+    'php::extension::curl':;
+    #'php::extension::gearman':;
+    #'php::extension::redis':;
+    'php::composer':;
+    'php::phpunit':;
   }
+  package { 'mongo':
+    ensure   => installed,
+    provider => pecl;
+  }
+  package {'php5-json':; }
 
   class { 'composer':
     require => Package ['php5-curl'],
@@ -230,48 +220,6 @@ node generic_desktop {
   package { 'dotcloud': 
     provider 	=> 'pip',
     ensure 	  => 'latest',
-  }
-
-  include docker
-  include vagrant 
-
-  package { 'skype':
-    require => Apt::Source['canonical-partner'],
-  }
-
-  apt::source { 'canonical-partner':
-    location  => 'http://archive.canonical.com/ubuntu',
-    repos     => 'partner',
-    include_src       => true
-  }
-
-  # Google 
-  apt::source { 'google-chrome':
-    location  	=> 'http://dl.google.com/linux/chrome/deb/',
-    release   	=> 'stable',
-    key           => '7FAC5991',
-    include_src   => false,
-  }
-  apt::source { 'google-talkplugin':
-    location  	=> 'http://dl.google.com/linux/talkplugin/deb/',
-    release   	=> 'stable',
-    key           => '7FAC5991',
-    include_src   => false,
-  }
-
-
-  package { 'dkms': 		      ensure	=> latest }
-
-  package { 'gedit':          ensure => latest }
-  wget::fetch { 'gedit-solarized-theme-dark':
-    source      => 'https://raw.github.com/altercation/solarized/master/gedit/solarized-dark.xml',
-    destination => '/usr/share/gtksourceview-3.0/styles/solarized-dark.xml',
-    require     => Package['gedit'],
-  }
-  wget::fetch { 'gedit-solarized-theme-light':
-    source      => 'https://raw.github.com/altercation/solarized/master/gedit/solarized-light.xml',
-    destination => '/usr/share/gtksourceview-3.0/styles/solarized-light.xml',
-    require     => Package['gedit'],
   }
 
   bash::rc { 'Add user bin to path':
@@ -316,6 +264,82 @@ node generic_desktop {
   git::config { 'color.interactive':      value => 'auto' }
   git::config { 'color.showbranch':       value => 'auto' }
   git::config { 'color.status' :          value => 'auto' }
+
+
+}
+
+node "ukraina.openweb.it" inherits generic_host {
+  include docker
+}
+
+node generic_desktop inherits generic_host {
+
+ # General dns conf
+  dnsmasq::conf { 'no-negcache': }
+
+  # Debugging dnsmasq conf
+  # dnsmasq::conf { 'log-queries': }
+  # dnsmasq::conf { 'log-async': value => 25 }
+
+  # Dev Environment
+  dnsmasq::conf { 'address': value => '/dev.it/127.0.1.1' }
+  motd::usernote { 'dnsmasq':
+    content => "Domain dev.it points to localhost, use it for your dev environments",
+  }
+
+  # Security
+  class { 'sudo': 
+    require	=> Package['ruby-hiera'],
+  }
+  sudo::conf { 'wheel-group':
+    priority => 10,
+    content  => "%wheel ALL=(ALL) NOPASSWD: ALL",
+  }
+  group { 'wheel':
+    ensure => 'present',
+  }
+
+  include docker
+  include vagrant 
+
+  package { 'skype':
+    require => Apt::Source['canonical-partner'],
+  }
+
+  apt::source { 'canonical-partner':
+    location  => 'http://archive.canonical.com/ubuntu',
+    repos     => 'partner',
+    include_src       => true
+  }
+
+  # Google 
+  apt::source { 'google-chrome':
+    location  	=> 'http://dl.google.com/linux/chrome/deb/',
+    release   	=> 'stable',
+    key           => '7FAC5991',
+    include_src   => false,
+  }
+  apt::source { 'google-talkplugin':
+    location  	=> 'http://dl.google.com/linux/talkplugin/deb/',
+    release   	=> 'stable',
+    key           => '7FAC5991',
+    include_src   => false,
+  }
+
+
+  package { 'dkms': 		      ensure	=> latest }
+
+  package { 'gedit':          ensure => latest }
+  wget::fetch { 'gedit-solarized-theme-dark':
+    source      => 'https://raw.github.com/altercation/solarized/master/gedit/solarized-dark.xml',
+    destination => '/usr/share/gtksourceview-3.0/styles/solarized-dark.xml',
+    require     => Package['gedit'],
+  }
+  wget::fetch { 'gedit-solarized-theme-light':
+    source      => 'https://raw.github.com/altercation/solarized/master/gedit/solarized-light.xml',
+    destination => '/usr/share/gtksourceview-3.0/styles/solarized-light.xml',
+    require     => Package['gedit'],
+  }
 
 }
 
@@ -477,6 +501,27 @@ node default inherits generic_desktop {
 
   # picasa
   package { [ 'wine', 'winetricks']:  ensure => latest }
+
+
+  # mongodb
+  class {'::mongodb::globals':
+      manage_package_repo => true,
+  }->
+  class {'::mongodb::server': }
+
+  mongodb_database { 'magrathea':
+    ensure      => present,
+    tries       => 10,
+    require     => Class['mongodb::server'],
+  }
+  mongodb_user { 'zaphod':
+    ensure          => present,
+    password_hash   => mongodb_password('zaphod', '42'),
+    database        => 'magrathea',
+    roles           => ['readWrite', 'dbAdmin'],
+    tries           => 10,
+    require         => Class['mongodb::server'],
+  }
 
 
 }

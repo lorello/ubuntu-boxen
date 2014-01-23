@@ -10,14 +10,15 @@ sudo dpkg -i puppetlabs-release-$DISTRO.deb
 sudo apt-get update -y -q
 
 # Install puppet without the agent init script
-sudo apt-get install git puppet-common -y -q
+sudo apt-get install git puppet-common hiera -y -q
 
 # Download uboxen code
 cd /opt
-sudo git clone https://github.com/lorello/ubuntu-boxen.git
-sudo ln -s /opt/ubuntu-boxen/uboxen /usr/local/bin/uboxen
+[ ! -d /opt/ubuntu-boxen ] && sudo git clone https://github.com/lorello/ubuntu-boxen.git
+sudo puppet resource file /usr/local/bin/uboxen ensure=link target=/opt/ubuntu-boxen/uboxen
+sudo puppet resource file /etc/puppet/manifests/site.pp ensure=link target=/opt/ubuntu-boxen/uboxen.pp
 
 # Finish
-echo "Installation ended. Run Ubuntu Boxen running 'uboxen'"
+echo -e "\n\nInstallation ended successfully (I hope).\n\nEnjoy Ubuntu Boxen running 'uboxen' at your shell prompt"
 
 

@@ -5,11 +5,24 @@ function forge()
 {
   AUTHOR=$1
   MODULE=$2
+  UPGRADED=$CACHE/{$AUTHOR}_{$MODULE}.lastupgrade
+  
   if [ ! -d /etc/puppet/modules/$MODULE ]; then
     sudo puppet module install $AUTHOR/$MODULE
   else
-    sudo puppet module upgrade $AUTHOR/$MODULE
+    if [ ! -f $UPGRADED ]; then
+      sudo puppet module upgrade $AUTHOR/$MODULE
+      touch $UPGRADED
+    fi
   fi
+}
+
+function gh()
+{
+  AUTHOR=$1
+  REPO=$2
+  MOD=$3
+  git clone https://github.com/$AUTHOR/$REPO.git /etc/puppet/modules/$MOD
 }
 
 # support for etckeeper
@@ -18,6 +31,9 @@ function etckeep()
   MSG=$1
   [ -x /usr/bin/etckeeper ] && sudo etckeeper commit "$MSG" 
 }
+
+CACHE=/tmp/uboxen
+[ ! -d $CACHE ] && mkdir $CACHE
 
 forge puppetlabs stdlib
 forge puppetlabs inifile
@@ -28,12 +44,19 @@ forge saz sudo
 forge thomasvandoren etckeeper
 forge garethr docker 
 forge willdurand composer 
-forge huskycode vim 
+gh lorello puppet-vim vim
+forge puppetlabs mongodb 
+forge nodes php
 
 MYPATH=$(dirname $0)
 
 etckeep "Before uBoxen run"
-sudo puppet apply $MYPATH/uboxen.pp 
+#sudo puppet apply $MYPATH/uboxen.pp 
+sudo puppet apply /etc/puppet/manifests/site.pp 
 etckeep "After uBoxen run"
+
+# Clean module upgrade files
+sudo puppet resource tidy $CACHE age=1m 
+
 
 exit 0
