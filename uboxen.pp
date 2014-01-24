@@ -509,19 +509,4 @@ node default inherits generic_desktop {
   }->
   class {'::mongodb::server': }
 
-  mongodb_database { 'magrathea':
-    ensure      => present,
-    tries       => 10,
-    require     => Class['mongodb::server'],
-  }
-  mongodb_user { 'zaphod':
-    ensure          => present,
-    password_hash   => mongodb_password('zaphod', '42'),
-    database        => 'magrathea',
-    roles           => ['readWrite', 'dbAdmin'],
-    tries           => 10,
-    require         => Class['mongodb::server'],
-  }
-
-
 }
