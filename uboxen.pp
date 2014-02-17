@@ -20,7 +20,7 @@ class homeshick($username)
   }
 
   bash::rc { 'homeshick command':
-    content => '[ -d ~/.homesick ] && source ~/.homesick/repos/homeshick/bin/homeshick.sh',
+    content => '[ -d ~/.homesick ] && source $HOME/.homesick/repos/homeshick/homeshick.sh',
   }
 
   # onlogin check if all managed files are updated
@@ -348,6 +348,10 @@ class vagrant {
 
   package { 'virtualbox': ensure	=> latest }
   package { 'vagrant': 		    ensure	=> latest }
+  wget::fetch { 'vagrant-bash-completion':
+    source      => 'https://github.com/kura/vagrant-bash-completion/raw/master/vagrant',
+    destination => '/etc/bash_completion.d/vagrant',
+  }
 
   bash::rc { 'alias vu="vagrant up"' : }
   bash::rc { 'alias vs="vagrant suspend"' : }
