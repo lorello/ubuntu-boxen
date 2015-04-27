@@ -304,20 +304,13 @@ node "ukraina.openweb.it" inherits generic_host {
 node generic_desktop inherits generic_host {
 
  # General dns conf
-  dnsmasq::conf { 'no-negcache': }
-
-  # Debugging dnsmasq conf
-  # dnsmasq::conf { 'log-queries': }
-  # dnsmasq::conf { 'log-async': value => 25 }
+  dnsmasq::conf { 'general-options':
+    content => "no-negcache\nlog-queries\nlog-async=50\n",
+  }
 
   # Dev Environment
-  dnsmasq::conf { 'dev.it':
-    key   => 'address',
-    value => '/dev.it/127.0.1.1',
-  }
-  dnsmasq::conf { 'vagrant.local':
-    key   => 'address',
-    value => '/vagrant.local/127.0.1.1',
+  dnsmasq::conf { 'resolv-dev.it':
+    content   => 'address=/dev.it/127.0.1.1',
   }
   motd::usernote { 'dnsmasq':
     content => "Domains *.dev.it points to localhost, use it for your dev environments",
@@ -390,13 +383,16 @@ class vagrant {
   }
 
   bash::rc { 'alias vu="vagrant up"' : }
+  bash::rc { 'alias vp="vagrant provision"' : }
   bash::rc { 'alias vs="vagrant suspend"' : }
 
+  dnsmasq::conf { 'resolve-vagrant.local':
+    content  => 'address=/vagrant.local/127.0.1.1',
+  }
 }
 
 class consul {
-  dnsmasq::conf { 'consul':
-    ensure  => present,
+  dnsmasq::conf { 'resolve-consul':
     content => 'server=/consul/127.0.0.1#8600',
   }
 }
@@ -604,7 +600,7 @@ node default inherits generic_desktop {
     require => [ Package['libxslt-dev'], Package['libxml2-dev']],
   }
   package { [ 'ruby-dev' ] : ensure => present }
-  package { [ 'puppet-lint', 'puppet-syntax', 'librarian-puppet', 'rspec-puppet', 'puppetlabs_spec_helper' ]:
+  package { [ 'puppet-lint', 'puppet-syntax', 'librarian-puppet', 'rspec-puppet', 'puppetlabs_spec_helper', 'r10k' ]:
     provider => 'gem',
     ensure   => 'present',
   }
@@ -613,7 +609,6 @@ node default inherits generic_desktop {
     require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
   }
 
-  include nodejs
   include atom
   include slack
 
