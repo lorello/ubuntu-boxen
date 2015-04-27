@@ -10,4 +10,7 @@ file {
   '/etc/puppet/modules':
     ensure => link,
     target => '/opt/ubuntu-boxen/modules';
+  '/var/lib/hiera':
+    ensure => link,
+    target => '/opt/ubuntu-boxen/data';
 }
