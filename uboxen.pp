@@ -5,7 +5,7 @@ class homeshick($username)
   validate_string($username)
   $userhome = "/home/${username}"
   validate_absolute_path($userhome)
-  
+
   file { "${userhome}/.homesick" :
     ensure        => directory,
     owner         => $username,
@@ -43,24 +43,13 @@ class homeshick($username)
   }
 }
 
-# dnsmasq on a desktop is managed by network manager
-# no modules on forge manage this
-define dnsmasq::conf($value=''){
-  file { "/etc/NetworkManager/dnsmasq.d/${name}":
-    content => $value ? { 
-    '' 	=> "${name}", 
-    default 	=> "${name}=${value}",
-    }
-  }
-}
-
 # MTP Support to mount Android Devices
 class mtp {
   package { [ 'mtp-tools', 'mtpfs' ] :
     ensure => latest,
   }
 
-  # missing: add-apt-repository ppa:langdalepl/gvfs-mtp
+  apt::ppa { 'ppa:langdalepl/gvfs-mtp': }
 }
 
 
@@ -71,9 +60,9 @@ define motd::usernote($content = '') {
 }
 
 define git::config(
-  $section='', 
-  $key='', 
-  $value, 
+  $section='',
+  $key='',
+  $value,
   $user='')
 {
 
@@ -91,7 +80,7 @@ define git::config(
     validate_re($name, '^\w+\.\w+$')
     $real_section_key = $name
   } else {
-    $real_section_key = "${section}.${key}" 
+    $real_section_key = "${section}.${key}"
   }
 
   exec { $real_section_key:
@@ -119,10 +108,18 @@ class bash {
 
 }
 
+
+class rubyng {
+  apt::ppa { 'ppa:brightbox/ruby-ng' : }
+
+
+}
+
+
 # if user specified add config to ~/.bashrc.puppet
 # else add config to system-wide bashrc.puppet.sh
 define bash::rc(
-  $content = '', 
+  $content = '',
   $user = undef,
 ) {
   validate_string($content)
@@ -165,8 +162,7 @@ node generic_host {
 
   # Common utilities
   $common_packages = [
-    'puppet',
-    'ruby-hiera',
+    'puppet-common',
     'htop',
     'ipcalc',
     'hwdata',
@@ -180,6 +176,8 @@ node generic_host {
     'nmap',
     'tcpdump',
     'ec2-api-tools',
+    'fdupes',
+    'hashalot',
   ]
   package { $common_packages : ensure => latest }
 
@@ -189,20 +187,44 @@ node generic_host {
     require	=> Package['ruby-hiera'],
   }
 
+  # Redis server
+  class { 'redis': }
+
   # PHP development env
 
   include php
 
   Package['php5-dev'] -> Php::Extension <| |> -> Php::Config <| |>
 
-  class { 
+  # required for php-redis package
+  apt::ppa { 'ppa:ufirst/php' :
+    require => File['/etc/php5/conf.d'],
+  }
+
+  # required for php-redis package
+  file { '/etc/php5/conf.d':
+    ensure => directory,
+  }
+
+  file { '/etc/php5/mods-available/redis.ini':
+    target => '/etc/php5/conf.d/redis.ini',
+    require => Package['php5-redis'],
+  }
+
+  file { '/etc/php5/cli/conf.d/20-redis.ini':
+    target => '../../mods-available/redis.ini',
+  }
+
+  Package['php5-redis'] -> Apt::Ppa['ppa:ufirst/php']
+
+  class {
     'php::cli':;
     'php::dev':;
     #'php::fpm':;
     'php::pear':;
     'php::extension::curl':;
     #'php::extension::gearman':;
-    #'php::extension::redis':;
+    'php::extension::redis':;
     'php::composer':;
     'php::phpunit':;
   }
@@ -217,7 +239,7 @@ node generic_host {
   }
 
   # PaaS
-  package { 'dotcloud': 
+  package { 'dotcloud':
     provider 	=> 'pip',
     ensure 	  => 'latest',
   }
@@ -225,7 +247,7 @@ node generic_host {
   bash::rc { 'Add user bin to path':
     content => 'export PATH=~/bin:$PATH',
   }
- 
+
   bash::rc { 'Set terminal to hicolor in X':
     content => '[ -n "$DISPLAY" -a "$TERM" == "xterm" ] && export TERM=xterm-256color',
   }
@@ -241,7 +263,7 @@ node generic_host {
   bash::rc { 'Sort by date, most recent last': content => 'alias lt="ls -ltr"' }
   bash::rc { 'Sort by size, biggest last': content => 'alias lk="ls -lSr"' }
   bash::rc { 'alias grep="grep --color=always"': }
- 
+
   bash::rc { 'alias update="sudo apt-get update"': }
   bash::rc { 'alias upgrade="update && sudo apt-get upgrade"': }
   bash::rc { 'alias install="sudo apt-get install"': }
@@ -249,15 +271,22 @@ node generic_host {
   bash::rc { 'alias netscan="nmap -A -sP"': }
   bash::rc { 'alias netscan0="nmap -A -PN"': }
   bash::rc { 'alias hostscan="nmap -A -T4"': }
-  
+
   bash::rc { 'alias goodpass="pwgen -scnvB -C 16 -N 1"': }
   bash::rc { 'alias goodpass8="pwgen -scnvB -C 8 -N 1"': }
   bash::rc { 'alias strongpass="pwgen -scynvB -C 16 -N 1"': }
   bash::rc { 'alias strongpass8="pwgen -scynvB -C 8 -N 1"': }
 
-  bash::rc { 'Command-line calculator': 
+  bash::rc { 'Command-line calculator':
     content => "calc (){\n\techo \"\$*\" | bc -l;\n}",
   }
+
+  bash::rc { 'sniff url':
+    content => 'alias sniff="sudo ngrep -tipd any -Wbyline \'/api/v1/verb\' tcp port 80"',
+    require => Package['ngrep'],
+  }
+
+  package {'ngrep': ensure => latest }
 
   git::config { 'alias.up' :              value => 'pull origin' }
   git::config { 'core.sharedRepository':  value => 'group' }
@@ -282,13 +311,20 @@ node generic_desktop inherits generic_host {
   # dnsmasq::conf { 'log-async': value => 25 }
 
   # Dev Environment
-  dnsmasq::conf { 'address': value => '/dev.it/127.0.1.1' }
+  dnsmasq::conf { 'dev.it':
+    key   => 'address',
+    value => '/dev.it/127.0.1.1',
+  }
+  dnsmasq::conf { 'vagrant.local':
+    key   => 'address',
+    value => '/vagrant.local/127.0.1.1',
+  }
   motd::usernote { 'dnsmasq':
-    content => "Domain dev.it points to localhost, use it for your dev environments",
+    content => "Domains *.dev.it points to localhost, use it for your dev environments",
   }
 
   # Security
-  class { 'sudo': 
+  class { 'sudo':
     require	=> Package['ruby-hiera'],
   }
   sudo::conf { 'wheel-group':
@@ -300,7 +336,7 @@ node generic_desktop inherits generic_host {
   }
 
   include docker
-  include vagrant 
+  include vagrant
 
   package { 'skype':
     require => Apt::Source['canonical-partner'],
@@ -312,7 +348,7 @@ node generic_desktop inherits generic_host {
     include_src       => true
   }
 
-  # Google 
+  # Google
   apt::source { 'google-chrome':
     location  	=> 'http://dl.google.com/linux/chrome/deb/',
     release   	=> 'stable',
@@ -358,6 +394,14 @@ class vagrant {
 
 }
 
+class consul {
+  dnsmasq::conf { 'consul':
+    ensure  => present,
+    content => 'server=/consul/127.0.0.1#8600',
+  }
+}
+
+
 define vagrant::box(
   $source,
   $username = 'root',
@@ -369,7 +413,7 @@ define vagrant::box(
     'root'  => '/root',
     default => "/home/${username}"
   }
- 
+
   if ! defined(File['vagrant-home']) {
     file { 'vagrant-home':
       path   => "${home}/vagrant",
@@ -377,7 +421,7 @@ define vagrant::box(
       ensure => directory,
     }
   }
- 
+
   vcsrepo { "${home}/vagrant/${name}":
     source   => $source,
     ensure   => present,
@@ -392,6 +436,30 @@ define vagrant::box(
 }
 
 
+class slack {
+    apt::ppa { 'rael-gc/scudcloud': }
+    package { 'scudcloud': ensure => latest }
+}
+
+class ubuntu::nautilus {
+  package { 'nautilus-compare': ensure => latest }
+}
+
+class desktop::proxy(
+  $proxy,
+  $noproxy = '127.0.0.1,127.0.1.1,localhost,*.local',
+){
+  package{ 'polipo': ensure => latest }
+  bash::rc { 'setup polipo as a system wide proxy':
+    content => "export {http,https,ftp}_proxy='http://${proxy}",
+  }
+  if $noproxy {
+    bash::rc { 'proxy skip rules':
+      content => "export https_no_proxy='${noproxy}'\nexport http_no_proxy='${noproxy}'"
+    }
+  }
+}
+
 node default inherits generic_desktop {
 
   $unix_user = 'lorello'
@@ -403,6 +471,9 @@ node default inherits generic_desktop {
     owner    => $unix_user,
   }
 
+  include ubuntu::nautilus
+  include rubyng
+
   git::config { 'user.name' : user => $unix_user, value => $unix_user }
   git::config { 'user.email': user => $unix_user, value => $email }
 
@@ -410,11 +481,11 @@ node default inherits generic_desktop {
     priority => 10,
     content  => "${unix_user} ALL=(ALL) NOPASSWD: ALL",
   }
- 
+
   user { $unix_user :
     groups => [ 'adm', 'sudo', 'wheel' ],
   }
- 
+
   class { 'homeshick':
     username => $unix_user,
   }
@@ -442,10 +513,10 @@ node default inherits generic_desktop {
   vim::rc { 'set shiftwidth=2': }
   vim::rc { 'set softtabstop=2': }
   vim::rc { 'set expandtab': }
-  
+
   vim::rc { 'set pastetoggle=<F6>': }
 
-  vim::rc { 'intuitive-split-positions': 
+  vim::rc { 'intuitive-split-positions':
     content => "set splitbelow\nset splitright",
   }
 
@@ -463,10 +534,6 @@ node default inherits generic_desktop {
   }
   vim::plugin { 'snippets':
     source => 'https://github.com/honza/vim-snippets.git',
-  }
-  vim::plugin { 'puppet':
-    source => 'https://github.com/rodjek/vim-puppet.git',
-    require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
   }
   vim::plugin { 'enhanced-status-line':
     source => 'https://github.com/millermedeiros/vim-statline.git',
@@ -499,9 +566,13 @@ node default inherits generic_desktop {
 
   # Multimedia stuff for RaiSmith project
   $multimedia_packages = [ 'mplayer', 'faad' ]
-  $utils_packages = [ 'network-manager-openvpn' ]
   $others = [ 'ubuntu-restricted-extras', 'qviaggiatreno' ]
   package { [ $multimedia_packages, $utils_packages, $others ]: ensure => latest }
+
+  package { [ 'openvpn', 'network-manager-openvpn' ]: ensure => latest }
+  bash::rc { 'alias vpnbo="sudo openvpn --config .secrets/vpn-bo.ovpn"': }
+  bash::rc { 'alias vpnpo="sudo openvpn --config .secrets/vpn-po.ovpn"': }
+
 
   # picasa
   package { [ 'wine', 'winetricks']:  ensure => latest }
@@ -512,5 +583,49 @@ node default inherits generic_desktop {
       manage_package_repo => true,
   }->
   class {'::mongodb::server': }
+
+  # mongo single page app manager
+  package { 'genghisapp':
+    provider => gem,
+  }
+
+  # performance
+  package {
+    'zram-config':  ensure => latest;
+    'ulatency':     ensure => latest;
+  }
+
+
+  # Puppet dev environment
+  package { [ 'libxslt-dev', 'libxml2-dev']: ensure => present }
+  package { 'nokogiri':
+    ensure => '1.5.11',
+    provider => 'gem',
+    require => [ Package['libxslt-dev'], Package['libxml2-dev']],
+  }
+  package { [ 'ruby-dev' ] : ensure => present }
+  package { [ 'puppet-lint', 'puppet-syntax', 'librarian-puppet', 'rspec-puppet', 'puppetlabs_spec_helper' ]:
+    provider => 'gem',
+    ensure   => 'present',
+  }
+  vim::plugin { 'puppet':
+    source => 'https://github.com/rodjek/vim-puppet.git',
+    require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
+  }
+
+  include nodejs
+  include atom
+  include slack
+
+  class {'ppapackages':
+    items => {
+      'scudcloud' => { ppa => 'rael-gc/scudcloud' }
+      }
+  }
+
+  class { 'desktop::proxy':
+    proxy => '127.0.0.1:8123',
+  }
+
 
 }
