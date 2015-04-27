@@ -609,7 +609,7 @@ node default inherits generic_desktop {
     require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
   }
 
-  include atom
+  #include atom
   include slack
 
   class {'ppapackages':
