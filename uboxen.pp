@@ -181,12 +181,6 @@ node generic_host {
   ]
   package { $common_packages : ensure => latest }
 
-  # Puppet config
-  file { '/etc/puppet/hiera.yaml':
-    content	=> '---',
-    require	=> Package['ruby-hiera'],
-  }
-
   # Redis server
   class { 'redis': }
 
@@ -563,7 +557,7 @@ node default inherits generic_desktop {
   # Multimedia stuff for RaiSmith project
   $multimedia_packages = [ 'mplayer', 'faad' ]
   $others = [ 'ubuntu-restricted-extras', 'qviaggiatreno' ]
-  package { [ $multimedia_packages, $utils_packages, $others ]: ensure => latest }
+  package { [ $multimedia_packages, $others ]: ensure => latest }
 
   package { [ 'openvpn', 'network-manager-openvpn' ]: ensure => latest }
   bash::rc { 'alias vpnbo="sudo openvpn --config .secrets/vpn-bo.ovpn"': }
@@ -599,7 +593,7 @@ node default inherits generic_desktop {
     provider => 'gem',
     require => [ Package['libxslt-dev'], Package['libxml2-dev']],
   }
-  package { [ 'ruby-dev' ] : ensure => present }
+  package { [ 'ruby-dev', 'ruby-hiera' ] : ensure => present }
   package { [ 'puppet-lint', 'puppet-syntax', 'librarian-puppet', 'rspec-puppet', 'puppetlabs_spec_helper', 'r10k' ]:
     provider => 'gem',
     ensure   => 'present',
