@@ -4,15 +4,15 @@
 function etckeep()
 {
   MSG=$1
-  [ -x /usr/bin/etckeeper ] && sudo etckeeper commit "$MSG" 
+  [ -x /usr/bin/etckeeper ] && sudo etckeeper commit "$MSG"
 }
 
-MYPATH=$(dirname $0)
+#MYPATH=$(dirname $0)
 
 etckeep "Before uBoxen run"
 cd /opt/ubuntu-boxen && r10k puppetfile install
 #sudo puppet apply $MYPATH/uboxen.pp
-sudo puppet apply /etc/puppet/manifests/site.pp 
+sudo puppet apply /etc/puppet/manifests/site.pp
 etckeep "After uBoxen run"
 
 exit 0
