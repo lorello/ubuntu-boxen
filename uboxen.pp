@@ -612,12 +612,6 @@ node default inherits generic_desktop {
   #include atom
   include slack
 
-  class {'ppapackages':
-    items => {
-      'scudcloud' => { ppa => 'rael-gc/scudcloud' }
-      }
-  }
-
   class { 'desktop::proxy':
     proxy => '127.0.0.1:8123',
   }
