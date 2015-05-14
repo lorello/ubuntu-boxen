@@ -1,3 +1,40 @@
+class softecvpn {
+  package { [ 'openvpn', 'network-manager-openvpn' ]: ensure => latest }
+  bash::rc { 'alias vpnbo="sudo openvpn --config .secrets/vpn-bo.ovpn"': }
+  bash::rc { 'alias vpnpo="sudo openvpn --config .secrets/vpn-po.ovpn"': }
+}
+
+class puppetdevtools {
+  # Puppet dev environment
+  package { [ 'libxslt-dev', 'libxml2-dev']: ensure => present }
+  package { 'nokogiri':
+    ensure => '1.5.11',
+    provider => 'gem',
+    require => [ Package['libxslt-dev'], Package['libxml2-dev']],
+  }
+  package { [ 'ruby-dev', 'ruby-hiera' ] : ensure => present }
+  package { [ 'puppet-lint', 'puppet-syntax', 'librarian-puppet', 'rspec-puppet', 'puppetlabs_spec_helper', 'r10k' ]:
+    provider => 'gem',
+    ensure   => 'present',
+  }
+  vim::plugin { 'puppet':
+    source => 'https://github.com/rodjek/vim-puppet.git',
+    require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
+  }
+
+
+
+}
+
+class lxd {
+    
+  apt::ppa { 
+    'ppa:ubuntu-lxc/lxd-git-master': 
+  }-> 
+  package{ 'lxd': ensure => latest }
+}
+
+
 # .dotfile management setup with homeshick
 # https://github.com/andsens/homeshick
 class homeshick($username)
@@ -152,6 +189,36 @@ define bash::rc(
   }
 }
 
+class profile::redis {
+  # Redis server
+  class { 'redis': }
+  # required for php-redis package
+  apt::ppa { 'ppa:ufirst/php' :
+    require => File['/etc/php5/conf.d'],
+  }
+
+  # required for php-redis package
+  file { '/etc/php5/conf.d':
+    ensure => directory,
+  }
+
+  file { '/etc/php5/mods-available/redis.ini':
+    target => '/etc/php5/conf.d/redis.ini',
+    require => Package['php5-redis'],
+  }
+
+  file { '/etc/php5/cli/conf.d/20-redis.ini':
+    target => '../../mods-available/redis.ini',
+  }
+
+  Package['php5-redis'] -> Apt::Ppa['ppa:ufirst/php']
+
+
+
+
+}
+
+
 node generic_host {
 
   # General DEFAULTS
@@ -181,35 +248,9 @@ node generic_host {
   ]
   package { $common_packages : ensure => latest }
 
-  # Redis server
-  class { 'redis': }
-
   # PHP development env
-
   include php
-
   Package['php5-dev'] -> Php::Extension <| |> -> Php::Config <| |>
-
-  # required for php-redis package
-  apt::ppa { 'ppa:ufirst/php' :
-    require => File['/etc/php5/conf.d'],
-  }
-
-  # required for php-redis package
-  file { '/etc/php5/conf.d':
-    ensure => directory,
-  }
-
-  file { '/etc/php5/mods-available/redis.ini':
-    target => '/etc/php5/conf.d/redis.ini',
-    require => Package['php5-redis'],
-  }
-
-  file { '/etc/php5/cli/conf.d/20-redis.ini':
-    target => '../../mods-available/redis.ini',
-  }
-
-  Package['php5-redis'] -> Apt::Ppa['ppa:ufirst/php']
 
   class {
     'php::cli':;
@@ -221,10 +262,6 @@ node generic_host {
     'php::extension::redis':;
     'php::composer':;
     'php::phpunit':;
-  }
-  package { 'mongo':
-    ensure   => installed,
-    provider => pecl;
   }
   package {'php5-json':; }
 
@@ -441,13 +478,33 @@ class desktop::proxy(
 ){
   package{ 'polipo': ensure => latest }
   bash::rc { 'setup polipo as a system wide proxy':
-    content => "export {http,https,ftp}_proxy='http://${proxy}",
+    content => "export {http,https,ftp}_proxy='http://${proxy}'",
   }
   if $noproxy {
     bash::rc { 'proxy skip rules':
       content => "export https_no_proxy='${noproxy}'\nexport http_no_proxy='${noproxy}'"
     }
   }
+}
+
+class profile::mongo 
+{
+  # mongodb
+  class {'::mongodb::globals':
+      manage_package_repo => true,
+  }->
+  class {'::mongodb::server': }
+
+  # mongo single page app manager
+  package { 'genghisapp':
+    provider => gem,
+  }
+  package { 'mongo':
+    ensure   => installed,
+    provider => pecl;
+  }
+
+
 }
 
 node default inherits generic_desktop {
@@ -552,32 +609,12 @@ node default inherits generic_desktop {
     username => $unix_user,
   }
 
-
-
-  # Multimedia stuff for RaiSmith project
-  $multimedia_packages = [ 'mplayer', 'faad' ]
   $others = [ 'ubuntu-restricted-extras', 'qviaggiatreno' ]
-  package { [ $multimedia_packages, $others ]: ensure => latest }
-
-  package { [ 'openvpn', 'network-manager-openvpn' ]: ensure => latest }
-  bash::rc { 'alias vpnbo="sudo openvpn --config .secrets/vpn-bo.ovpn"': }
-  bash::rc { 'alias vpnpo="sudo openvpn --config .secrets/vpn-po.ovpn"': }
-
+  package { [ $others ]: ensure => latest }
 
   # picasa
   package { [ 'wine', 'winetricks']:  ensure => latest }
 
-
-  # mongodb
-  class {'::mongodb::globals':
-      manage_package_repo => true,
-  }->
-  class {'::mongodb::server': }
-
-  # mongo single page app manager
-  package { 'genghisapp':
-    provider => gem,
-  }
 
   # performance
   package {
@@ -585,24 +622,7 @@ node default inherits generic_desktop {
     'ulatency':     ensure => latest;
   }
 
-
-  # Puppet dev environment
-  package { [ 'libxslt-dev', 'libxml2-dev']: ensure => present }
-  package { 'nokogiri':
-    ensure => '1.5.11',
-    provider => 'gem',
-    require => [ Package['libxslt-dev'], Package['libxml2-dev']],
-  }
-  package { [ 'ruby-dev', 'ruby-hiera' ] : ensure => present }
-  package { [ 'puppet-lint', 'puppet-syntax', 'librarian-puppet', 'rspec-puppet', 'puppetlabs_spec_helper', 'r10k' ]:
-    provider => 'gem',
-    ensure   => 'present',
-  }
-  vim::plugin { 'puppet':
-    source => 'https://github.com/rodjek/vim-puppet.git',
-    require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
-  }
-
+  include puppetdevtools
   #include atom
   include slack
 
@@ -610,5 +630,6 @@ node default inherits generic_desktop {
     proxy => '127.0.0.1:8123',
   }
 
+  include softecvpn
 
 }
