@@ -12,7 +12,7 @@ function etckeep()
 etckeep "Before uBoxen run"
 cd /opt/ubuntu-boxen && r10k puppetfile install
 #sudo puppet apply $MYPATH/uboxen.pp
-sudo puppet apply /etc/puppet/manifests/site.pp
+sudo puppet apply --modulepath=/opt/ubuntu-boxen/modules  /etc/puppet/manifests/site.pp 
 etckeep "After uBoxen run"
 
 exit 0
