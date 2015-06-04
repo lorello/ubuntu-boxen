@@ -132,7 +132,6 @@ class git {
 }
 
 
-
 class bash {
 
   package { [ 'bash', 'bash-completion', 'command-not-found' ] :
@@ -148,8 +147,6 @@ class bash {
 
 class rubyng {
   apt::ppa { 'ppa:brightbox/ruby-ng' : }
-
-
 }
 
 
@@ -189,7 +186,8 @@ define bash::rc(
   }
 }
 
-class profile::redis {
+
+class profile::phpredis {
   # Redis server
   class { 'redis': }
   # required for php-redis package
@@ -218,11 +216,28 @@ class profile::redis {
 
 }
 
+class profile::git(
+  $config,
+) {
+  create_resources('git::config', $config)
+}
+
+class profile::bash(
+  $rc,
+) {
+  create_resources('bash::rc', $rc)
+}
+
+class profile::software(
+  $packages,
+){
+  create_resources('package', $packages)
+}
+
 
 node generic_host {
 
-  # General DEFAULTS
-  Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
+ 
 
   include etckeeper
   include apt
@@ -328,11 +343,7 @@ node generic_host {
 
 }
 
-node "ukraina.openweb.it" inherits generic_host {
-  include docker
-}
-
-node generic_desktop inherits generic_host {
+node generic_desktop {
 
  # General dns conf
   dnsmasq::conf { 'general-options':
@@ -367,17 +378,17 @@ node generic_desktop inherits generic_host {
   }
 
   apt::source { 'canonical-partner':
-    location  => 'http://archive.canonical.com/ubuntu',
-    repos     => 'partner',
-    include_src       => true
+    location    => 'http://archive.canonical.com/ubuntu',
+    repos       => 'partner',
+    include_src => true
   }
 
   # Google
   apt::source { 'google-chrome':
     location  	=> 'http://dl.google.com/linux/chrome/deb/',
     release   	=> 'stable',
-    key           => '7FAC5991',
-    include_src   => false,
+    key         => '7FAC5991',
+    include_src => false,
   }
   apt::source { 'google-talkplugin':
     location  	=> 'http://dl.google.com/linux/talkplugin/deb/',
@@ -507,7 +518,7 @@ class profile::mongo
 
 }
 
-node default inherits generic_desktop {
+node motokosony {
 
   $unix_user = 'lorello'
   $unix_home = "/home/${unix_user}"
@@ -633,3 +644,11 @@ node default inherits generic_desktop {
   include softecvpn
 
 }
+
+node default {
+}
+
+# General DEFAULTS
+Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
+
+hiera_include('classes', [ 'stdlib' ])

@@ -1,1 +1,17 @@
 ---
+classes:
+  - stdlib
+  - apt
+  - etckeeper
+  - profile::bash
+
+profile::bash::rc:
+  'Add user bin to path':
+    content: 'export PATH=~/bin:$PATH'
+  'Set terminal to hicolor in X':
+    content: '[ -n "$DISPLAY" -a "$TERM" == "xterm" ] && export TERM=xterm-256color'
+  'set history time format':
+    content: 'HISTTIMEFORMAT="[%Y-%m-%d - %H:%M:%S] "'
+  'alias ll':
+    content: 'alias ll="ls -lv --group-directories-first"'
+  'alias rm="rm -i"':
