@@ -8,7 +8,7 @@ Look at [the original Boxen](http://boxen.github.com/) to understand what it is 
 
 Setup
 -----
-    wget -O- -q https://raw2.github.com/lorello/ubuntu-boxen/master/install.sh | /bin/bash
+    wget -O- -q https://raw.githubusercontent.com/lorello/ubuntu-boxen/master/install.sh | /bin/bash
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lorello/ubuntu-boxen/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
