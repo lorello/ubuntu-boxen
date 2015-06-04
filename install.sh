@@ -18,7 +18,7 @@ sudo gem install r10k
 cd /opt
 [ ! -d /opt/ubuntu-boxen ] && sudo git clone https://github.com/lorello/ubuntu-boxen.git
 cd /opt/ubuntu-boxen
-r10k puppetfile install
+sudo r10k puppetfile install
 sudo puppet apply install.pp
 
 # Finish
