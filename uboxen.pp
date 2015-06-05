@@ -22,18 +22,7 @@ class puppetdevtools {
     require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
   }
 
-
-
 }
-
-class lxd {
-    
-  apt::ppa { 
-    'ppa:ubuntu-lxc/lxd-git-master': 
-  }-> 
-  package{ 'lxd': ensure => latest }
-}
-
 
 # .dotfile management setup with homeshick
 # https://github.com/andsens/homeshick
@@ -214,24 +203,6 @@ class profile::phpredis {
 
 
 
-}
-
-class profile::git(
-  $config,
-) {
-  create_resources('git::config', $config)
-}
-
-class profile::bash(
-  $rc,
-) {
-  create_resources('bash::rc', $rc)
-}
-
-class profile::software(
-  $packages,
-){
-  create_resources('package', $packages)
 }
 
 
@@ -535,15 +506,6 @@ node motokosony {
   git::config { 'user.name' : user => $unix_user, value => $unix_user }
   git::config { 'user.email': user => $unix_user, value => $email }
 
-  sudo::conf { $unix_user:
-    priority => 10,
-    content  => "${unix_user} ALL=(ALL) NOPASSWD: ALL",
-  }
-
-  user { $unix_user :
-    groups => [ 'adm', 'sudo', 'wheel' ],
-  }
-
   class { 'homeshick':
     username => $unix_user,
   }
@@ -645,10 +607,65 @@ node motokosony {
 
 }
 
+class profile::git(
+  $config,
+) {
+  create_resources('git::config', $config)
+}
+
+class profile::bash(
+  $rc,
+) {
+  create_resources('bash::rc', $rc)
+}
+
+class profile::software(
+  $packages,
+){
+  $defaults = {
+    ensure => latest
+  }
+  if $packages {
+    create_resources('profile::software::package', $packages, $defaults)
+  }
+
+}
+
+define profile::software::package(
+  ensure = present,
+  provider = apt,
+  ppa = undef,
+  ){
+    if $ppa {
+        apt::ppa { "ppa:${ppa}":
+    }
+}
+
+class profile::owner(
+  $username,
+  $email,
+  $groups,
+) {
+  user { $username:
+    ensure => present,
+  }
+
+  sudo::conf { $username:
+    priority => 10,
+    content  => "${username} ALL=(ALL) NOPASSWD: ALL",
+  }
+
+  user { $username :
+    groups => $groups,
+  }
+
+}
+
 node default {
 }
 
 # General DEFAULTS
-Exec { path => "/usr/bin:/usr/sbin/:/bin:/sbin" }
+#Exec { path => '/usr/bin:/usr/sbin/:/bin:/sbin' }
 
 hiera_include('classes', [ 'stdlib' ])
+
