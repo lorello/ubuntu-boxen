@@ -3,20 +3,22 @@ classes:
   - stdlib
   - apt
   - etckeeper
-  - profile::bash
+  - bash
   - profile::software
 
-profile::bash::rc:
+bash::rc:
   'Add user bin to path':
-    content: 'export PATH=~/bin:$PATH'
+    'content': 'export PATH=~/bin:$PATH'
   'Set terminal to hicolor in X':
-    content: '[ -n "$DISPLAY" -a "$TERM" == "xterm" ] && export TERM=xterm-256color'
+    'content': '[ -n "$DISPLAY" -a "$TERM" == "xterm" ] && export TERM=xterm-256color'
   'better history time format':
-    content: 'HISTTIMEFORMAT="[%Y-%m-%d - %H:%M:%S] "'
-  'alias ll':
-    content: 'alias ll="ls -lv --group-directories-first"'
-  'alias rm':
-    content: 'alias rm="rm -i"'
+    'content': 'HISTTIMEFORMAT="[%Y-%m-%d - %H:%M:%S] "'
+
+bash::aliases:
+  'll':
+    cmd: 'ls -lv --group-directories-first'
+  'rm':
+    cmd: 'rm -i'
 
 profile::software::packages:
     - 'git'
@@ -35,6 +37,8 @@ profile::software::packages:
     - 'ppa-purge'
     - 'pwgen'
     - 'tcpdump'
+    - 'dkms'
+    - 'gedit'
 
 profile::software::ppas:
     'rael-gc/scudcloud':              # slack client

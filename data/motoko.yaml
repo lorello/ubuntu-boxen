@@ -1,19 +1,14 @@
 ---
 classes:
   - stdlib
+  - profile::owner
 
-profile::owner::name   : 'lorello'
-profile::owner::email  : 'lorenzo.salvadorini@softecspa.it'
-profile::owner::groups :
+profile::owner::username : 'lorello'
+profile::owner::email    : 'lorenzo.salvadorini@softecspa.it'
+profile::owner::groups   :
   - adm
   - sudo
   - wheel
-
-profile::bash::rc:
-    'vpn bologna':
-        content: 'alias vpnbo="sudo openvpn --config .secrets/vpn-bo.ovpn"'
-    'vpn prato':
-        content: 'alias vpnpo="sudo openvpn --config .secrets/vpn-po.ovpn"'
 
 profile::software::ppas:
     - 'brightbox/ruby-ng':
@@ -28,5 +23,12 @@ profile::software::packages:
     - 'ngrep'
     - 'ubuntu-restricted-extras'
     - 'qviaggiatreno'
+    - 'nautilus-compare'
     # - 'zram-config'
     # - 'ulatency'
+
+bash::aliases:
+    'vpn-bo':
+        cmd: 'sudo openvpn --config .secrets/vpn-bo.ovpn'
+    'vpn-po':
+        cmd: 'sudo openvpn --config .secrets/vpn-po.ovpn'
