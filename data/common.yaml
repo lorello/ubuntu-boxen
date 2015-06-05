@@ -4,14 +4,43 @@ classes:
   - apt
   - etckeeper
   - profile::bash
+  - profile::software
 
 profile::bash::rc:
   'Add user bin to path':
     content: 'export PATH=~/bin:$PATH'
   'Set terminal to hicolor in X':
     content: '[ -n "$DISPLAY" -a "$TERM" == "xterm" ] && export TERM=xterm-256color'
-  'set history time format':
+  'better history time format':
     content: 'HISTTIMEFORMAT="[%Y-%m-%d - %H:%M:%S] "'
   'alias ll':
     content: 'alias ll="ls -lv --group-directories-first"'
-  'alias rm="rm -i"':
+  'alias rm':
+    content: 'alias rm="rm -i"'
+
+profile::software::packages:
+    - 'git'
+    - 'puppet-common'
+    - 'vim'
+    - 'curl'
+    - 'nmap'
+    - 'htop'
+    - 'openvpn'
+    - 'network-manager-openvpn'
+    - 'ipcalc'
+    - 'hwdata'
+    - 'python-pip'
+    - 'p7zip'
+    - 'aptitude'
+    - 'ppa-purge'
+    - 'pwgen'
+    - 'tcpdump'
+
+profile::software::ppas:
+    'rael-gc/scudcloud':              # slack client
+        packages:
+            - 'scudcloud'
+    'ubuntu-lxc/lxd-git-master':      # ubuntu system containers
+        packages:
+            - 'lxd'
+
