@@ -48,3 +48,22 @@ profile::software::ppas:
         packages:
             - 'lxd'
 
+profile::software::repos:
+    'canonical-partner':
+        location:   'http://archive.canonical.com/ubuntu'
+        repos:      'partner'
+        packages:
+            - 'skype'
+    'google-chrome':
+        location:   'http://dl.google.com/linux/chrome/deb'
+        release:    'stable'
+        key:        '4CCA1EAF950CEE4AB83976DCA040830F7FAC5991'
+        packages:
+            - 'google-chrome-stable'
+    'google-talkplugin':
+        location:   'http://dl.google.com/linux/talkplugin/deb'
+        release:    'stable'
+        key:        '4CCA1EAF950CEE4AB83976DCA040830F7FAC5991'
+        packages:
+            - 'google-talkplugin'
+

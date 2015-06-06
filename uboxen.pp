@@ -247,32 +247,6 @@ node generic_desktop {
   group { 'wheel':
     ensure => 'present',
   }
-
-  package { 'skype':
-    require => Apt::Source['canonical-partner'],
-  }
-
-  apt::source { 'canonical-partner':
-    location    => 'http://archive.canonical.com/ubuntu',
-    repos       => 'partner',
-    include_src => true
-  }
-
-  # Google
-  apt::source { 'google-chrome':
-    location  	=> 'http://dl.google.com/linux/chrome/deb/',
-    release   	=> 'stable',
-    key         => '7FAC5991',
-    include_src => false,
-  }
-  apt::source { 'google-talkplugin':
-    location  	=> 'http://dl.google.com/linux/talkplugin/deb/',
-    release   	=> 'stable',
-    key           => '7FAC5991',
-    include_src   => false,
-  }
-
-
   wget::fetch { 'gedit-solarized-theme-dark':
     source      => 'https://raw.github.com/altercation/solarized/master/gedit/solarized-dark.xml',
     destination => '/usr/share/gtksourceview-3.0/styles/solarized-dark.xml',
@@ -462,10 +436,12 @@ class profile::git(
 class profile::software(
   $packages,
   $ppas,
+  $repos,
 ){
 
   validate_array($packages)
   validate_hash($ppas)
+  validate_hash($repos)
 
   $defaults = {
     ensure => latest
@@ -477,7 +453,9 @@ class profile::software(
   if $ppas {
     create_resources('profile::software::ppa', $ppas, $defaults)
   }
-
+  if $repos {
+    create_resources('profile::software::repo', $repos)
+  }
 }
 
 define profile::software::ppa(
@@ -495,6 +473,32 @@ define profile::software::ppa(
         }
     }
 }
+
+define profile::software::repo(
+  $ensure = present,
+  $location,
+  $release = $::lsbdistcodename,
+  $key = undef,
+  $repos = 'main',
+  $packages = [],
+)
+{
+
+  validate_array($packages)
+
+  apt::source { $name:
+    ensure      => $ensure,
+    location    => $location,
+    release     => $release,
+    key         => $key,
+    repos       => $repos,
+  }->
+  package { $packages:
+    ensure => $ensure,
+  }
+
+}
+
 
 class profile::owner(
   $username,
