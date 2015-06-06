@@ -10,7 +10,6 @@ RUN dpkg -i puppetlabs-release-precise.deb
 
 # Update & upgrades
 RUN apt-get update -y -q
-RUN apt-get upgrade -y
 
 # Install puppet without the agent init script
 RUN apt-get install puppet-common=2.7.25-1puppetlabs1 git sudo -y -q
