@@ -179,39 +179,6 @@ class profile::phpdev {
 
 node generic_host {
 
-  bash::rc { 'alias ll="ls -lv --group-directories-first"': }
-  bash::rc { 'alias rm="rm -i"': }
-  bash::rc { 'alias mv="mv -i"': }
-  bash::rc { 'alias mkdir="mkdir -p"': }
-  bash::rc { 'alias df="df -kTh"': }
-  bash::rc { 'alias ..="cd .."': }
-  bash::rc { 'alias svim="sudo vim"': }
-  bash::rc { 'Sort by date, most recent last': content => 'alias lt="ls -ltr"' }
-  bash::rc { 'Sort by size, biggest last': content => 'alias lk="ls -lSr"' }
-  bash::rc { 'alias grep="grep --color=always"': }
-
-  bash::rc { 'alias update="sudo apt-get update"': }
-  bash::rc { 'alias upgrade="update && sudo apt-get upgrade"': }
-  bash::rc { 'alias install="sudo apt-get install"': }
-
-  bash::rc { 'alias netscan="nmap -A -sP"': }
-  bash::rc { 'alias netscan0="nmap -A -PN"': }
-  bash::rc { 'alias hostscan="nmap -A -T4"': }
-
-  bash::rc { 'alias goodpass="pwgen -scnvB -C 16 -N 1"': }
-  bash::rc { 'alias goodpass8="pwgen -scnvB -C 8 -N 1"': }
-  bash::rc { 'alias strongpass="pwgen -scynvB -C 16 -N 1"': }
-  bash::rc { 'alias strongpass8="pwgen -scynvB -C 8 -N 1"': }
-
-  bash::rc { 'Command-line calculator':
-    content => "calc (){\n\techo \"\$*\" | bc -l;\n}",
-  }
-
-  bash::rc { 'sniff url':
-    content => 'alias sniff="sudo ngrep -tipd any -Wbyline \'/api/v1/verb\' tcp port 80"',
-    require => Package['ngrep'],
-  }
-
   git::config { 'alias.up' :              value => 'pull origin' }
   git::config { 'core.sharedRepository':  value => 'group' }
   git::config { 'color.interactive':      value => 'auto' }
@@ -263,8 +230,11 @@ node generic_desktop {
 
 class vagrant {
 
-  package { 'virtualbox': ensure	=> latest }
-  package { 'vagrant': 		    ensure	=> latest }
+
+
+
+  package { 'virtualbox': 	ensure	=> latest }
+  package { 'vagrant': 		ensure	=> latest }
   wget::fetch { 'vagrant-bash-completion':
     source      => 'https://github.com/kura/vagrant-bash-completion/raw/master/vagrant',
     destination => '/etc/bash_completion.d/vagrant',
@@ -276,12 +246,6 @@ class vagrant {
 
   dnsmasq::conf { 'resolve-vagrant.local':
     content  => 'address=/vagrant.local/127.0.1.1',
-  }
-}
-
-class consul {
-  dnsmasq::conf { 'resolve-consul':
-    content => 'server=/consul/127.0.0.1#8600',
   }
 }
 
@@ -412,6 +376,36 @@ node motokosony {
     content => 'let g:rainbow_active = 1',
   }
 
+  vagrant::box { 'hhvm':
+    source   => 'https://github.com/javer/hhvm-vagrant-vm',
+    username => $unix_user,
+  }
+
+  class { 'desktop::proxy':
+    proxy => '127.0.0.1:8123',
+  }
+}
+
+class profile::git(
+  $config,
+) {
+  create_resources('git::config', $config)
+}
+
+
+class profile::software(
+  $packages,
+  $ppas,
+  $repos,
+){
+
+  validate_array($packages)
+  validate_hash($ppas)
+  validate_hash($repos)
+
+  $defaults = {
+    ensure => latest
+  }
   vagrant::box { 'hhvm':
     source   => 'https://github.com/javer/hhvm-vagrant-vm',
     username => $unix_user,
