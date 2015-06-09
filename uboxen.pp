@@ -230,23 +230,32 @@ node generic_desktop {
 
 class vagrant {
 
+    apt::source { 'wolfgang42-vagrant':
+        comment  => 'This is an unofficial .deb repository for Vagrant, hosted by Wolfgang Faust. It makes the official deb packages available as a repository for convenience',
+        location => 'http://vagrant-deb.linestarve.com/',
+        release  => 'any',
+        repos    => 'main',
+        key      => {
+            'id' => '2099F7A4',
+        },
+    }
 
+    package { 'virtualbox': ensure => latest }
+    package { 'vagrant':    ensure => latest }
 
+    wget::fetch { 'vagrant-bash-completion':
+        source      => 'https://github.com/kura/vagrant-bash-completion/raw/master/vagrant',
+        destination => '/etc/bash_completion.d/vagrant',
+    }
 
-  package { 'virtualbox': 	ensure	=> latest }
-  package { 'vagrant': 		ensure	=> latest }
-  wget::fetch { 'vagrant-bash-completion':
-    source      => 'https://github.com/kura/vagrant-bash-completion/raw/master/vagrant',
-    destination => '/etc/bash_completion.d/vagrant',
-  }
+    bash::rc { 'alias vu="vagrant up"' : }
+    bash::rc { 'alias vp="vagrant provision"' : }
+    bash::rc { 'alias vs="vagrant suspend"' : }
 
-  bash::rc { 'alias vu="vagrant up"' : }
-  bash::rc { 'alias vp="vagrant provision"' : }
-  bash::rc { 'alias vs="vagrant suspend"' : }
+    dnsmasq::conf { 'resolve-vagrant.local':
+        content  => 'address=/vagrant.local/127.0.1.1',
+    }
 
-  dnsmasq::conf { 'resolve-vagrant.local':
-    content  => 'address=/vagrant.local/127.0.1.1',
-  }
 }
 
 
@@ -310,7 +319,7 @@ node motokosony {
   git::config { 'user.email': user => $unix_user, value => $email }
 
   class { 'vim':
-    user	=> $unix_user,
+    user     => $unix_user,
     home_dir => $unix_home,
   }
 

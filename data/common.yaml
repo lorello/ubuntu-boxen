@@ -15,10 +15,52 @@ bash::rc:
     'content': 'HISTTIMEFORMAT="[%Y-%m-%d - %H:%M:%S] "'
 
 bash::aliases:
-  'll':
-    cmd: 'ls -lv --group-directories-first'
-  'rm':
-    cmd: 'rm -i'
+    'll':
+        cmd: 'ls -lv --group-directories-first'
+    'rm':
+        cmd: 'rm -i'
+    'mv':
+        cmd: 'mv -i'
+    'mkdir':
+        cmd: 'mkdir -p'
+    'df':
+        cmd: 'df -kTh'
+    '..':
+        cmd: 'cd ..'
+    '...':
+        cmd: 'cd ../..'
+    'svim':
+        cmd: 'sudo vim'
+    'vimr':
+        cmd: 'vim -R'
+    'lt':
+        cmd: 'ls -ltr'                # Sort by date, most recent last
+    'lk':
+        cmd: 'ls -lSr'                # Sort by size, biggest last
+    'grep':
+        cmd: 'grep --color=always'
+    'update':
+        cmd: 'sudo apt-get update'
+    'install:'
+        cmd: 'sudo apt-get install'
+    'upgrade':
+        cmd: 'sudo apt-get update && sudo apt-get upgrade'
+    'netscan':
+        cmd: 'nmap -A -sP'
+    'netscan0':
+        cmd: 'nmap -A -PN'
+    'hostscan':
+        cmd: 'nmap -A -T4'
+    'goodpass':
+        cmd: 'pwgen -scnvB -C 16 -N 1'
+    'goodpass8':
+        cmd: 'pwgen -scnvB -C 8 -N 1'
+    'strongpass':
+        cmd: 'pwgen -scynvB -C 16 -N 1'
+    'strongpass8':
+        cmd: 'pwgen -scynvB -C 8 -N 1'
+    'sniff-url':
+        cmd: "sudo ngrep -tipd any -Wbyline \'/api/v1/verb\' tcp port 80"
 
 profile::software::packages:
     - 'git'
