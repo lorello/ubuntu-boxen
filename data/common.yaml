@@ -42,7 +42,7 @@ bash::aliases:
         cmd: 'grep --color=always'
     'update':
         cmd: 'sudo apt-get update'
-    'install:'
+    'install':
         cmd: 'sudo apt-get install'
     'upgrade':
         cmd: 'sudo apt-get update && sudo apt-get upgrade'
