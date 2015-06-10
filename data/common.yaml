@@ -5,6 +5,7 @@ classes:
   - etckeeper
   - bash
   - profile::software
+    #  - vagrant
 
 bash::rc:
   'Add user bin to path':
@@ -78,6 +79,7 @@ profile::software::packages:
     - 'aptitude'
     - 'ppa-purge'
     - 'pwgen'
+    - 'syslinux-utils'                 # contains md5pass to encrypt unix password
     - 'tcpdump'
     - 'dkms'
     - 'gedit'
