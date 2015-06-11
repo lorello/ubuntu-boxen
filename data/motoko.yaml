@@ -1,19 +1,19 @@
 ---
 classes:
-  - stdlib
   - profile::owner
+  - profile::puppetdev
+  - profile::zfs
 
 profile::owner::username : 'lorello'
 profile::owner::email    : 'lorenzo.salvadorini@softecspa.it'
 profile::owner::groups   :
   - adm
   - sudo
-  - wheel
 
 profile::software::ppas:
-    'brightbox/ruby-ng':
-        packages:
-            - 'ruby'
+#    'brightbox/ruby-ng':
+#        packages:
+#            - 'ruby'
 
 profile::software::packages:
     - 'subversion'
@@ -27,8 +27,8 @@ profile::software::packages:
     # - 'zram-config'
     # - 'ulatency'
 
-profile::software::gems:
-    - 'showoff'
+#profile::software::gems:
+#    - 'showoff'
 
 bash::aliases:
     'vpn-bo':

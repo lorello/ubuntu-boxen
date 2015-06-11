@@ -7,6 +7,9 @@ classes:
   - profile::software
     #  - vagrant
 
+
+sudo::purge: false
+
 bash::rc:
   'Add user bin to path':
     'content': 'export PATH=~/bin:$PATH'
@@ -64,9 +67,11 @@ bash::aliases:
         cmd: "sudo ngrep -tipd any -Wbyline \'/api/v1/verb\' tcp port 80"
 
 profile::software::ensure  : 'latest'
+
 profile::software::packages:
     - 'git'
     - 'puppet-common'
+    - 'puppet-lint'
     - 'vim'
     - 'curl'
     - 'nmap'
@@ -84,6 +89,10 @@ profile::software::packages:
     - 'tcpdump'
     - 'dkms'
     - 'gedit'
+    - 'deja-dup'
+    - 'deja-dup-backend-s3'
+    - 'ruby'
+    - 'ruby-dev'
 
 profile::software::gems:
     - 'r10k'

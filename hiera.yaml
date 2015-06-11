@@ -8,4 +8,4 @@
     - "%{::hostname}"
     - "%{::kernel}"
 
-:logger: puppet 
+:logger: puppet
