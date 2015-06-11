@@ -1,24 +1,57 @@
 class profile::puppetdev {
   
   # Puppet dev environment
-  package { [ 'libxslt-dev', 'libxml2-dev']: ensure => present }
-  package { 'nokogiri':
-    ensure => '1.5.11',
-    provider => 'gem',
-    require => [ Package['libxslt-dev'], Package['libxml2-dev']],
-  }
-  package { [ 'ruby-dev', 'ruby-hiera' ] : ensure => present }
-  package { [ 'puppet-lint', 'puppet-syntax', 'librarian-puppet', 'rspec-puppet', 'puppetlabs_spec_helper', 'r10k' ]:
+  # package { [ 'libxslt-dev', 'libxml2-dev']: ensure => present }
+  # package { 'nokogiri':
+  #  ensure => '1.5.11',
+  #  provider => 'gem',
+  # require => [ Package['libxslt-dev'], Package['libxml2-dev']],
+  # }
+  # package { [ 'ruby-dev', 'ruby-hiera' ] : ensure => present }
+  package { [ 'puppet-syntax' ]:
     provider => 'gem',
     ensure   => 'present',
   }
 
-  vim::plugin { 'puppet':
-    source => 'https://github.com/rodjek/vim-puppet.git',
-    require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
-  }
+  #if profile::editors
+  #vim::plugin { 'puppet':
+  #  source => 'https://github.com/rodjek/vim-puppet.git',
+  #  require => [ Vim::Plugin['tabular'], Vim::Plugin['snippets'] ],
+  #}
 
 }
+
+# untils got fixed in ppa
+define profile::zfs::tmpfix(
+) {
+    wget::fetch { $name:
+      source      => "https://raw.githubusercontent.com/zfsonlinux/zfs/master/etc/systemd/system/${name}.in",
+      destination => "/etc/systemd/system/${name}",
+      cache_dir   => '/var/cache/wget',
+    }->
+    exec { "/bin/sed --in-place 's#@sysconfdir@#/etc#' /etc/systemd/system/${name}":
+    }->
+    exec { "/bin/sed --in-place 's#@sbindir@#/sbin#' /etc/systemd/system/${name}": }
+}
+
+class profile::zfs {
+
+  contain ::zfs
+
+  #if $lsbdistcodename == 'viviv' {
+
+    profile::zfs::tmpfix { 'zed.service': }
+    profile::zfs::tmpfix { 'zfs-import-cache.service': }
+    profile::zfs::tmpfix { 'zfs-import-scan.service': }
+    profile::zfs::tmpfix { 'zfs-mount.service': }
+    profile::zfs::tmpfix { 'zfs-share.service': }
+    profile::zfs::tmpfix { 'zfs.target': }
+
+  #}
+
+}
+
+
 
 define motd::usernote($content = '') {
   file { "/etc/update-motd.d/60-${name}":
@@ -228,7 +261,7 @@ node generic_desktop {
 }
 
 
-class vagrant {
+class profile::vagrant {
 
     apt::source { 'wolfgang42-vagrant':
         comment  => 'This is an unofficial .deb repository for Vagrant, hosted by Wolfgang Faust.',
@@ -246,6 +279,7 @@ class vagrant {
     wget::fetch { 'vagrant-bash-completion':
         source      => 'https://github.com/kura/vagrant-bash-completion/raw/master/vagrant',
         destination => '/etc/bash_completion.d/vagrant',
+        cache_dir   => '/var/cache/wget',
     }
 
     bash::rc { 'alias vu="vagrant up"' : }
@@ -259,12 +293,12 @@ class vagrant {
 }
 
 
-define vagrant::box(
+define profile::vagrant::box(
   $source,
   $username = 'root',
 ){
 
-  include vagrant
+  include ::profile::vagrant
 
   $home = $username ? {
     'root'  => '/root',
@@ -457,8 +491,10 @@ class profile::software(
     package { $gems:
         ensure   => $ensure,
         provider => 'gem',
+        # require  => [ Package['ruby'], Package['ruby-dev'] ],
     }
   }
+
 }
 
 define profile::software::ppa(
