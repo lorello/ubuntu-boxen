@@ -11,7 +11,7 @@ profile::owner::groups   :
   - wheel
 
 profile::software::ppas:
-    - 'brightbox/ruby-ng':
+    'brightbox/ruby-ng':
         packages:
             - 'ruby'
 

@@ -510,6 +510,7 @@ class profile::owner(
 ) {
   user { $username:
     ensure => present,
+    groups => $groups,
   }
 
   sudo::conf { $username:
@@ -517,14 +518,12 @@ class profile::owner(
     content  => "${username} ALL=(ALL) NOPASSWD: ALL",
   }
 
-  user { $username :
-    groups => $groups,
-  }
-
 }
 
 # General DEFAULTS
 #Exec { path => '/usr/bin:/usr/sbin/:/bin:/sbin' }
 
-hiera_include('classes', [ 'stdlib' ])
+node default {
+	hiera_include('classes', [ 'stdlib' ])
+}
 
