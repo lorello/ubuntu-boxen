@@ -231,17 +231,17 @@ node generic_desktop {
 class vagrant {
 
     apt::source { 'wolfgang42-vagrant':
-        comment  => 'This is an unofficial .deb repository for Vagrant, hosted by Wolfgang Faust. It makes the official deb packages available as a repository for convenience',
+        comment  => 'This is an unofficial .deb repository for Vagrant, hosted by Wolfgang Faust.',
         location => 'http://vagrant-deb.linestarve.com/',
         release  => 'any',
         repos    => 'main',
         key      => {
             'id' => '2099F7A4',
         },
-    }
+    }->
+    package { 'vagrant':    ensure => latest }
 
     package { 'virtualbox': ensure => latest }
-    package { 'vagrant':    ensure => latest }
 
     wget::fetch { 'vagrant-bash-completion':
         source      => 'https://github.com/kura/vagrant-bash-completion/raw/master/vagrant',
@@ -402,19 +402,9 @@ class profile::git(
 }
 
 
-class profile::software(
-  $packages,
-  $ppas,
-  $repos,
+class profile::qualcosa(
 ){
 
-  validate_array($packages)
-  validate_hash($ppas)
-  validate_hash($repos)
-
-  $defaults = {
-    ensure => latest
-  }
   vagrant::box { 'hhvm':
     source   => 'https://github.com/javer/hhvm-vagrant-vm',
     username => $unix_user,
@@ -437,27 +427,37 @@ class profile::git(
 
 
 class profile::software(
-  $packages,
-  $ppas,
-  $repos,
+  $ensure = present,
+  $packages = [],
+  $gems = [],
+  $ppas = {},
+  $repos = {},
 ){
 
+  validate_re($ensure, '^(present|absent|latest)$')
   validate_array($packages)
   validate_hash($ppas)
   validate_hash($repos)
+  validate_array($gems)
 
   $defaults = {
-    ensure => latest
+    ensure => $ensure,
   }
 
   if $packages {
-    package { $packages: ensure => latest }
+    package { $packages: ensure => $ensure }
   }
   if $ppas {
     create_resources('profile::software::ppa', $ppas, $defaults)
   }
   if $repos {
     create_resources('profile::software::repo', $repos)
+  }
+  if $gems {
+    package { $gems:
+        ensure   => $ensure,
+        provider => 'gem',
+    }
   }
 }
 
@@ -521,9 +521,6 @@ class profile::owner(
     groups => $groups,
   }
 
-}
-
-node default {
 }
 
 # General DEFAULTS
