@@ -17,4 +17,7 @@ file {
   '/etc/puppet/hiera.yaml':
     ensure => link,
     target => '/opt/ubuntu-boxen/hiera.yaml';
+  '/etc/hiera.yaml':
+    ensure => link,
+    target => '/opt/ubuntu-boxen/hiera.yaml';
 }
