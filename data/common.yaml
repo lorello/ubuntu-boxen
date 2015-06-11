@@ -63,6 +63,7 @@ bash::aliases:
     'sniff-url':
         cmd: "sudo ngrep -tipd any -Wbyline \'/api/v1/verb\' tcp port 80"
 
+profile::software::ensure  : 'latest'
 profile::software::packages:
     - 'git'
     - 'puppet-common'
@@ -83,6 +84,9 @@ profile::software::packages:
     - 'tcpdump'
     - 'dkms'
     - 'gedit'
+
+profile::software::gems:
+    - 'r10k'
 
 profile::software::ppas:
     'rael-gc/scudcloud':              # slack client
