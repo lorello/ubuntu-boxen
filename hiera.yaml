@@ -3,8 +3,8 @@
 
 :yaml:
     :datadir: /var/lib/hiera
-    :hierarchy: 
-      - "%{::clientcert}"
-      - "%{::osfamily}"
-      - common
+    :hierarchy:
+        - "%{::hostname}"
+        - "%{::kernel}"
+        - common
     :logger: console
