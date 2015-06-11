@@ -2,9 +2,10 @@
 :backends: yaml
 
 :yaml:
-    :datadir: /var/lib/hiera
-    :hierarchy:
-        - "%{::hostname}"
-        - "%{::kernel}"
-        - common
-    :logger: console
+    :datadir: /opt/ubuntu-boxen/data
+
+:hierarchy:
+    - "%{::hostname}"
+    - "%{::kernel}"
+
+:logger: puppet 
