@@ -27,6 +27,9 @@ profile::software::packages:
     # - 'zram-config'
     # - 'ulatency'
 
+profile::software::gems:
+    - 'showoff'
+
 bash::aliases:
     'vpn-bo':
         cmd: 'sudo openvpn --config .secrets/vpn-bo.ovpn'
