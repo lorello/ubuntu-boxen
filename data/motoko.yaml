@@ -3,6 +3,7 @@ classes:
   - profile::owner
   - profile::puppetdev
   - profile::zfs
+  - profile::vagrant
 
 profile::owner::username : 'lorello'
 profile::owner::email    : 'lorenzo.salvadorini@softecspa.it'
@@ -35,3 +36,13 @@ bash::aliases:
         cmd: 'sudo openvpn --config .secrets/vpn-bo.ovpn'
     'vpn-po':
         cmd: 'sudo openvpn --config .secrets/vpn-po.ovpn'
+
+profile::vagrant::boxes_domain : 'vagrant.local'
+profile::vagrant::manage_repo  : true
+profile::vagrant::user  : 'lorello'
+profile::vagrant::plugins:
+    cachier:
+        ensure: 'present'
+    r10k:
+        ensure: 'present'
+
