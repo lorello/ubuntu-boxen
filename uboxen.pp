@@ -1,13 +1,24 @@
+
+# Puppet dev environment
 class profile::puppetdev {
-  
-  # Puppet dev environment
-  # package { [ 'libxslt-dev', 'libxml2-dev']: ensure => present }
+
+    if ! defined(Package['libxslt-dev']) {
+        package{ 'libxslt-dev': ensure => installed }
+    }
+    if ! defined(Package['libxml2-dev']) {
+        package{ 'libxml2-dev' : ensure => installed }
+    }
+    if ! defined(Package['ruby-dev']) {
+        package{ 'ruby-dev' : ensure => installed }
+    }
+
+
   # package { 'nokogiri':
   #  ensure => '1.5.11',
   #  provider => 'gem',
   # require => [ Package['libxslt-dev'], Package['libxml2-dev']],
   # }
-  # package { [ 'ruby-dev', 'ruby-hiera' ] : ensure => present }
+  # package { [ 'ruby-hiera' ] : ensure => present }
   package { [ 'puppet-syntax' ]:
     provider => 'gem',
     ensure   => 'present',
@@ -266,7 +277,6 @@ class profile::vagrant(
     $manage_shell = false,
     $boxes_domain = undef,
     $plugins      = {},
-    $user         = undef,
 ) {
 
     validate_bool($manage_repo)
@@ -323,13 +333,13 @@ define profile::vagrant::plugin(
         exec { "install-${name}":
             command => "/usr/bin/vagrant plugin install vagrant-${name}",
             unless  => "/usr/bin/vagrant plugin list | grep vagrant-${name}",
-            user    => $::profile::vagrant::user,
+            user    => $::profile::owner::username,
         }
     } else {
         exec { "uninstall-${name}":
             command => "/usr/bin/vagrant plugin uninstall vagrant-${name}",
             onlyif  => "/usr/bin/vagrant plugin list | grep vagrant-${name}",
-            user    => $::profile::vagrant::user,
+            user    => $::profile::owner::username,
         }
     }
 }

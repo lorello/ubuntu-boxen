@@ -92,7 +92,6 @@ profile::software::packages:
     - 'deja-dup'
     - 'deja-dup-backend-s3'
     - 'ruby'
-    - 'ruby-dev'
 
 profile::software::gems:
     - 'r10k'
