@@ -1,6 +1,6 @@
 
 # Puppet dev environment
-class profile::puppetdev {
+class profile::puppet::developer {
 
     if ! defined(Package['libxslt-dev']) {
         package{ 'libxslt-dev': ensure => installed }
@@ -12,17 +12,10 @@ class profile::puppetdev {
         package{ 'ruby-dev' : ensure => installed }
     }
 
-
-  # package { 'nokogiri':
-  #  ensure => '1.5.11',
-  #  provider => 'gem',
-  # require => [ Package['libxslt-dev'], Package['libxml2-dev']],
-  # }
-  # package { [ 'ruby-hiera' ] : ensure => present }
-  package { [ 'puppet-syntax' ]:
-    provider => 'gem',
-    ensure   => 'present',
-  }
+    package { [ 'puppet-syntax', 'puppet-lint' ]:
+        provider => 'gem',
+        ensure   => 'present',
+    }
 
   #if profile::editors
   #vim::plugin { 'puppet':
@@ -32,36 +25,42 @@ class profile::puppetdev {
 
 }
 
-# untils got fixed in ppa
-define profile::zfs::tmpfix(
-) {
+# An error in ZFS package make it unable to start at boot
+# if the system use systemd (the default choice in Vivid)
+# this define get fixed until a fix arrive from PPA
+define profile::zfs::tmpfix() {
     wget::fetch { $name:
-      source      => "https://raw.githubusercontent.com/zfsonlinux/zfs/master/etc/systemd/system/${name}.in",
-      destination => "/etc/systemd/system/${name}",
-      cache_dir   => '/var/cache/wget',
+        source      => "https://raw.githubusercontent.com/zfsonlinux/zfs/master/etc/systemd/system/${name}.in",
+        destination => "/etc/systemd/system/${name}",
+        cache_dir   => '/var/cache/wget',
     }->
-    exec { "/bin/sed --in-place 's#@sysconfdir@#/etc#' /etc/systemd/system/${name}":
+    exec { "set-variable-sysconfdir-in-${name}":
+        command => "/bin/sed --in-place 's#@sysconfdir@#/etc#' /etc/systemd/system/${name}",
+        unless  => "/bin/grep -v '@sysconfdir@' /etc/systemd/system/${name}",
     }->
-    exec { "/bin/sed --in-place 's#@sbindir@#/sbin#' /etc/systemd/system/${name}": }
+    exec { "set-variable-sbindir-in-${name}":
+        command => "/bin/sed --in-place 's#@sbindir@#/sbin#' /etc/systemd/system/${name}",
+        unless  => "/bin/grep -v '@sbindir@' /etc/systemd/system/${name}",
+    }
 }
 
+# Install ZFS ppa to use this wonderful filesystem in your Box
 class profile::zfs {
 
-  contain ::zfs
+    contain ::zfs
 
-  #if $lsbdistcodename == 'viviv' {
+    if $lsbdistcodename == 'vivid' {
 
-    profile::zfs::tmpfix { 'zed.service': }
-    profile::zfs::tmpfix { 'zfs-import-cache.service': }
-    profile::zfs::tmpfix { 'zfs-import-scan.service': }
-    profile::zfs::tmpfix { 'zfs-mount.service': }
-    profile::zfs::tmpfix { 'zfs-share.service': }
-    profile::zfs::tmpfix { 'zfs.target': }
+        profile::zfs::tmpfix { 'zed.service': }
+        profile::zfs::tmpfix { 'zfs-import-cache.service': }
+        profile::zfs::tmpfix { 'zfs-import-scan.service': }
+        profile::zfs::tmpfix { 'zfs-mount.service': }
+        profile::zfs::tmpfix { 'zfs-share.service': }
+        profile::zfs::tmpfix { 'zfs.target': }
 
-  #}
+    }
 
 }
-
 
 
 define motd::usernote($content = '') {

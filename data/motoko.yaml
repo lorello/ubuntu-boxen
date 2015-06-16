@@ -1,7 +1,7 @@
 ---
 classes:
   - profile::owner
-  - profile::puppetdev
+  - profile::puppet::developer
   - profile::zfs
   - profile::vagrant
 
@@ -46,10 +46,12 @@ profile::vagrant::plugins:
     r10k:
         ensure: 'present'
 
+# Python module is hiera-friendly
 python::python_pips:
     'mkdocs':
         ensure: 'latest'
 
+# Other hiera-friendly settings in python module:
 # python::python_virtualenvs:
 # python::python_pyenvs:
 
