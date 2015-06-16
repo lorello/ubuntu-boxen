@@ -520,6 +520,7 @@ class profile::software(
   $gems = [],
   $ppas = {},
   $repos = {},
+  $manage_python = true,
 ){
 
   validate_re($ensure, '^(present|absent|latest)$')
@@ -527,6 +528,7 @@ class profile::software(
   validate_hash($ppas)
   validate_hash($repos)
   validate_array($gems)
+  validate_bool($manage_python)
 
   $defaults = {
     ensure => $ensure,
@@ -547,6 +549,9 @@ class profile::software(
         provider => 'gem',
         # require  => [ Package['ruby'], Package['ruby-dev'] ],
     }
+  }
+  if $manage_python {
+    include python
   }
 
 }

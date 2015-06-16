@@ -28,8 +28,8 @@ profile::software::packages:
     # - 'zram-config'
     # - 'ulatency'
 
-#profile::software::gems:
-#    - 'showoff'
+profile::software::gems:
+    - 'showoff'
 
 bash::aliases:
     'vpn-bo':
@@ -45,4 +45,11 @@ profile::vagrant::plugins:
         ensure: 'present'
     r10k:
         ensure: 'present'
+
+python::python_pips:
+    'mkdocs':
+        ensure: 'latest'
+
+# python::python_virtualenvs:
+# python::python_pyenvs:
 

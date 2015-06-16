@@ -23,3 +23,4 @@ mod 'maestrodev/wget'
 mod 'vim',
   :git => "git://github.com/lorello/puppet-vim.git"
 mod 'bodgit/zfs'
+mod 'stankevich/python'
