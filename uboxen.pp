@@ -1,4 +1,16 @@
 
+class profile::gnome::backup {
+
+    package { [ 'deja-dup', 'deja-dup-backend-s3' ]: ensure => latest }
+
+    gnome::gsettings { "wmpref":
+        user => "user",
+        schema => "org.gnome.desktop.wm.preferences",
+            key => "theme",
+            value => "Ambiance",
+        }
+}
+
 # Puppet dev environment
 class profile::puppet::developer {
 
@@ -493,23 +505,6 @@ class profile::git(
   create_resources('git::config', $config)
 }
 
-
-class profile::qualcosa(
-){
-
-  vagrant::box { 'hhvm':
-    source   => 'https://github.com/javer/hhvm-vagrant-vm',
-    username => $unix_user,
-  }
-
-  # picasa
-  package { [ 'wine', 'winetricks']:  ensure => latest }
-
-
-  class { 'desktop::proxy':
-    proxy => '127.0.0.1:8123',
-  }
-}
 
 class profile::git(
   $config,
