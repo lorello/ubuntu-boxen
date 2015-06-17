@@ -5,6 +5,7 @@ classes:
   - etckeeper
   - bash
   - profile::software
+  - ssh
     #  - vagrant
 
 
@@ -71,7 +72,6 @@ profile::software::ensure  : 'latest'
 profile::software::packages:
     - 'git'
     - 'puppet-common'
-    - 'puppet-lint'
     - 'vim'
     - 'curl'
     - 'nmap'
@@ -94,6 +94,7 @@ profile::software::packages:
 
 profile::software::gems:
     - 'r10k'
+    - 'deep_merge'
 
 profile::software::ppas:
     'rael-gc/scudcloud':              # slack client
@@ -121,4 +122,12 @@ profile::software::repos:
         key:        '4CCA1EAF950CEE4AB83976DCA040830F7FAC5991'
         packages:
             - 'google-talkplugin'
+
+ssh::storeconfigs_enabled: false
+ssh::client_options:
+    'Host *':
+        SendEnv: 'LANG LC_*'
+        ForwardX11Trusted: 'yes'
+        ServerAliveInterval: '10'
+        HashKnownHost: 'no'
 

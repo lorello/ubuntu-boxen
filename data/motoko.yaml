@@ -11,7 +11,7 @@ profile::owner::groups   :
   - adm
   - sudo
 
-profile::software::ppas:
+# profile::software::ppas:
 #    'brightbox/ruby-ng':
 #        packages:
 #            - 'ruby'
@@ -30,6 +30,7 @@ profile::software::packages:
 
 profile::software::gems:
     - 'showoff'
+    - 'git-deploy'
 
 #bash::aliases:
 #    'vpn-bo':
@@ -54,4 +55,49 @@ python::python_pips:
 # Other hiera-friendly settings in python module:
 # python::python_virtualenvs:
 # python::python_pyenvs:
+
+ssh::users_client_options:
+    'lorello':
+        'options':
+            'Host 192.168.12.1':
+                'User': 'softec'
+            'Host eris.softecspa.it':
+                'User': 'softec'
+            'Host ob3.osservatoriobalcani.org':
+                'User': 'root'
+                'Port': 5022
+            'Host ob5.osservatoriobalcani.org':
+                'User': 'lorello'
+            'Host ob1.openweb.it':
+                'User': 'root'
+                'Port': 5022
+            'Host virnam.softecspa.it':
+                'User': 'softec'
+            'Host tetsuya.softecspa.it':
+                'Port': 22222
+                'User': 'cli'
+            'Host bbj*.softecspa.it':
+                'User': 'admuser'
+            'Host varn??.softecspa.it':
+                'User': 'root'
+            'Host 107.21.12.88':
+                'User': 'ec2-user'
+                'IdentityFile': '~/.secrets/RedationWP.pem'
+            'Host 107.21.40.177':
+                'User': 'ec2-user'
+                'IdentityFile': '~/.secrets/RedationWP.pem'
+            'Host 107.21.40.52.38':
+                'User': 'ec2-user'
+                'IdentityFile': '~/.secrets/RedationWP.pem'
+            'Host 107.23.15.49':
+                'User': 'ec2-user'
+                'IdentityFile': '~/.secrets/RedationWP.pem'
+            'Host *.openweb.it':
+                'User': 'lorello'
+                'LocalForward': '33006 localhost:3306'
+            'Host *.softecspa.it':
+                'User': 'lorenzo.salvadorini'
+                'PasswordAuthentication': 'no'
+            'Host *.sftc.it':
+                'User': 'si'
 
