@@ -31,11 +31,11 @@ profile::software::packages:
 profile::software::gems:
     - 'showoff'
 
-bash::aliases:
-    'vpn-bo':
-        cmd: 'sudo openvpn --config .secrets/vpn-bo.ovpn'
-    'vpn-po':
-        cmd: 'sudo openvpn --config .secrets/vpn-po.ovpn'
+#bash::aliases:
+#    'vpn-bo':
+#        cmd: 'sudo openvpn --config ~/.secrets/vpn-bo.ovpn'
+#    'vpn-po':
+#        cmd: 'sudo openvpn --config ~/.secrets/vpn-po.ovpn'
 
 profile::vagrant::boxes_domain : 'vagrant.local'
 profile::vagrant::manage_repo  : true
