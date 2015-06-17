@@ -129,5 +129,5 @@ ssh::client_options:
         SendEnv: 'LANG LC_*'
         ForwardX11Trusted: 'yes'
         ServerAliveInterval: '10'
-        HashKnownHost: 'no'
+        HashKnownHosts: 'no'
 
