@@ -41,9 +41,9 @@ profile::vagrant::boxes_domain : 'vagrant.local'
 profile::vagrant::manage_repo  : true
 profile::vagrant::user  : 'lorello'
 profile::vagrant::plugins:
-    cachier:
+    'cachier':
         ensure: 'present'
-    r10k:
+    'r10k':
         ensure: 'present'
 
 # Python module is hiera-friendly

@@ -80,7 +80,6 @@ profile::software::packages:
     - 'network-manager-openvpn'
     - 'ipcalc'
     - 'hwdata'
-    - 'python-pip'
     - 'p7zip'
     - 'aptitude'
     - 'ppa-purge'

@@ -62,7 +62,6 @@ class profile::zfs {
 
 }
 
-
 define motd::usernote($content = '') {
   file { "/etc/update-motd.d/60-${name}":
     content  => $content,
@@ -227,7 +226,6 @@ node generic_host {
   git::config { 'color.interactive':      value => 'auto' }
   git::config { 'color.showbranch':       value => 'auto' }
   git::config { 'color.status' :          value => 'auto' }
-
 
 }
 
