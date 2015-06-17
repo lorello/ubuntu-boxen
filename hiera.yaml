@@ -9,3 +9,5 @@
     - "%{::kernel}"
 
 :logger: puppet
+
+:merge_behavior: deeper
