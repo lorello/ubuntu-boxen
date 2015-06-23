@@ -24,7 +24,7 @@ profile::software::packages:
     - 'ngrep'
     - 'ubuntu-restricted-extras'
     - 'qviaggiatreno'
-    - 'nautilus-compare'
+    - 'gthumb'
     # - 'zram-config'
     # - 'ulatency'
 
