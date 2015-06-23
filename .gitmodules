@@ -1,0 +1,3 @@
+[submodule "data/hosts"]
+	path = data/hosts
+	url = git@git.sftc.it:ops/uboxen-hosts.git
