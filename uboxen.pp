@@ -1,4 +1,5 @@
-
+# Look at here for ideas:
+# https://sites.google.com/site/bmaupinwiki/home/operating-systems/gnu-linux/ubuntuelementary/ubuntu-gsettings-dconf
 class profile::gnome::backup {
 
     package { [ 'deja-dup', 'deja-dup-backend-s3' ]: ensure => latest }
@@ -9,6 +10,8 @@ class profile::gnome::backup {
             key => "theme",
             value => "Ambiance",
         }
+
+    
 }
 
 # Puppet dev environment
@@ -47,11 +50,11 @@ define profile::zfs::tmpfix() {
     }->
     exec { "set-variable-sysconfdir-in-${name}":
         command => "/bin/sed --in-place 's#@sysconfdir@#/etc#' /etc/systemd/system/${name}",
-        unless  => "/bin/grep -v '@sysconfdir@' /etc/systemd/system/${name}",
+        onlyif  => "/bin/grep '@sysconfdir@' /etc/systemd/system/${name}",
     }->
     exec { "set-variable-sbindir-in-${name}":
         command => "/bin/sed --in-place 's#@sbindir@#/sbin#' /etc/systemd/system/${name}",
-        unless  => "/bin/grep -v '@sbindir@' /etc/systemd/system/${name}",
+        onlyif  => "/bin/grep '@sbindir@' /etc/systemd/system/${name}",
     }
 }
 
