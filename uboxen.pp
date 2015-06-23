@@ -249,7 +249,7 @@ node generic_host {
   git::config { 'color.interactive':      value => 'auto' }
   git::config { 'color.showbranch':       value => 'auto' }
   git::config { 'color.status' :          value => 'auto' }
-
+  git::config { 'push.default':           value => 'simple' }
 }
 
 node generic_desktop {
