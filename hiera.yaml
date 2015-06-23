@@ -5,7 +5,7 @@
     :datadir: /opt/ubuntu-boxen/data
 
 :hierarchy:
-    - "%{::hostname}"
+    - "hosts/%{::hostname}"
     - "%{::kernel}"
 
 :logger: puppet
