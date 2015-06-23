@@ -63,6 +63,10 @@ ssh::users_client_options:
                 'User': 'softec'
             'Host eris.softecspa.it':
                 'User': 'softec'
+            'Host manipolo50.softecspa.net':
+                'User': 'softec'
+            'Host *.maxtyre.it':
+                'User': 'softec'
             'Host ob3.osservatoriobalcani.org':
                 'User': 'root'
                 'Port': 5022
