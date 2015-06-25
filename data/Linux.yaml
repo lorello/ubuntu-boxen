@@ -6,7 +6,7 @@ classes:
   - bash
   - profile::software
   - ssh
-    #  - vagrant
+  - profile::docker
 
 
 sudo::purge: false
@@ -157,3 +157,19 @@ ssh::client_options:
         ServerAliveInterval: '10'
         HashKnownHosts: 'no'
 
+
+docker::images:
+    ubuntu:
+        image_tag: 'trusty'
+
+# another class available in hiera:
+# docker::run_instance:
+#    helloworld:
+#        image: 'ubuntu:trusty'
+#        command: '/bin/sh -c "while true; do echo hello world; sleep 1; done"'
+
+#docker::registry_auth::registries:
+#  'example.docker.io:5000':
+#    username: 'user1'
+#    password: 'secret'
+#    email: 'user1@example.io'

@@ -5,14 +5,14 @@ forge "https://forgeapi.puppetlabs.com"
 
 mod 'puppetlabs/stdlib'
 mod 'puppetlabs/inifile'
-mod 'puppetlabs/apt'
+mod 'puppetlabs/apt',
+  :git => "https://github.com/puppetlabs/puppetlabs-apt.git"
 mod 'puppetlabs/vcsrepo'
 mod 'puppetlabs/concat'
 mod 'saz/sudo'
 mod 'saz/dnsmasq'
 mod 'saz/ssh'
 mod 'thomasvandoren/etckeeper'
-#mod 'garethr/docker'
 mod 'puppetlabs/docker_platform'
 mod 'willdurand/composer'
 mod 'puppetlabs/mongodb'
@@ -27,3 +27,4 @@ mod 'bodgit/zfs'
 mod 'stankevich/python'
 mod 'camptocamp/gnome'
 mod 'mosen/cups'
+mod 'garethr/docker'

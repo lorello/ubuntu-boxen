@@ -11,7 +11,15 @@ class profile::gnome::backup {
             value => "Ambiance",
         }
 
-    
+}
+
+class profile::docker {
+
+    class { '::docker':
+        #version => 'latest',
+        docker_users => [ $profile::owner::username ],
+    }
+
 }
 
 # Puppet dev environment
