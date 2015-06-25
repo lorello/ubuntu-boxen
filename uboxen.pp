@@ -317,7 +317,7 @@ class profile::vagrant(
 
     package { 'vagrant':    ensure => latest }
 
-    package { 'virtualbox': ensure => latest }
+    #package { 'virtualbox': ensure => latest }
 
     if $manage_shell {
         wget::fetch { 'vagrant-bash-completion':
@@ -650,6 +650,6 @@ Wget::Fetch {
 }
 
 node default {
-	hiera_include('classes', [ 'stdlib' ])
+    hiera_include('classes', [ 'stdlib' ])
 }
 

@@ -74,7 +74,10 @@ profile::software::packages:
     - 'puppet-common'
     - 'vim'
     - 'curl'
+    - 'httpie'
     - 'nmap'
+    - 'nethogs'
+    - 'sysdig'
     - 'htop'
     - 'openvpn'
     - 'network-manager-openvpn'
@@ -113,6 +116,12 @@ profile::software::ppas:
     'ubuntu-lxc/lxd-git-master':      # ubuntu system containers
         packages:
             - 'lxd'
+    'webupd8team/atom':
+        packages:
+            - 'atom'
+    'webupd8team/sublime-text-3':
+        packages:
+            - 'sublime-text-installer'
 
 profile::software::repos:
     'canonical-partner':
@@ -132,6 +141,13 @@ profile::software::repos:
         key:        '4CCA1EAF950CEE4AB83976DCA040830F7FAC5991'
         packages:
             - 'google-talkplugin'
+    'oracle-virtualbox':
+        location:   'http://download.virtualbox.org/virtualbox/debian'
+        release:    'vivid'
+        repos:      'contrib'
+        key:        '7B0FAB3A13B907435925D9C954422A4B98AB5139'
+        packages:
+            - 'virtualbox'
 
 ssh::storeconfigs_enabled: false
 ssh::client_options:

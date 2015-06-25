@@ -26,3 +26,4 @@ mod 'vim',
 mod 'bodgit/zfs'
 mod 'stankevich/python'
 mod 'camptocamp/gnome'
+mod 'mosen/cups'
