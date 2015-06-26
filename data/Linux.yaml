@@ -7,7 +7,7 @@ classes:
   - profile::software
   - ssh
   - profile::docker
-
+  - git
 
 sudo::purge: false
 
@@ -70,7 +70,6 @@ bash::aliases:
 profile::software::ensure  : 'latest'
 
 profile::software::packages:
-    - 'git'
     - 'puppet-common'
     - 'vim'
     - 'curl'
@@ -80,7 +79,7 @@ profile::software::packages:
     - 'sysdig'
     - 'htop'
     - 'openvpn'
-    - 'network-manager-openvpn'
+    - 'network-manager-openvpn' #http://howto.praqma.net/ubuntu/vpn/openvpn-access-server-client-on-ubuntu
     - 'nautilus-compare'
     - 'nautilus-script-audio-convert'
     - 'nautilus-script-manager'
@@ -173,3 +172,23 @@ docker::images:
 #    username: 'user1'
 #    password: 'secret'
 #    email: 'user1@example.io'
+
+git::configs:
+  alias.up:
+    value: "pull origin"
+    scope: "system"
+  core.sharedRepository:
+    value: "group"
+    scope: "system"
+  color.interactive:
+    value: "auto"
+    scope: "system"
+  color.showbranch:
+    value: "auto"
+    scope: "system"
+  color.status:
+    value: "auto"
+    scope: "system"
+  push.default:
+    value: "simple"
+    scope: "system"

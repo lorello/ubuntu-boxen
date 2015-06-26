@@ -90,37 +90,6 @@ define motd::usernote($content = '') {
   }
 }
 
-define git::config(
-  $section='',
-  $key='',
-  $value,
-  $user='')
-{
-
-  include git
-
-  if empty($user)
-  {
-    $real_command = "git config --system"
-  } else {
-    validate_string($user)
-    $real_command = "sudo -u ${user} git config --global"
-  }
-
-  if empty($section) and empty($key) {
-    validate_re($name, '^\w+\.\w+$')
-    $real_section_key = $name
-  } else {
-    $real_section_key = "${section}.${key}"
-  }
-
-  exec { $real_section_key:
-    command => "${real_command} ${real_section_key} \"$value\"",
-    unless  => "test \"`${real_command} ${real_section_key}`\" = \"${value}\"",
-    require => Package['git'],
-  }
-}
-
 class bash(
     $aliases = {},
     $rc = {},
@@ -248,16 +217,6 @@ class profile::phpdev {
   class { 'composer':
     require => Package ['php5-curl'],
   }
-}
-
-node generic_host {
-
-  git::config { 'alias.up' :              value => 'pull origin' }
-  git::config { 'core.sharedRepository':  value => 'group' }
-  git::config { 'color.interactive':      value => 'auto' }
-  git::config { 'color.showbranch':       value => 'auto' }
-  git::config { 'color.status' :          value => 'auto' }
-  git::config { 'push.default':           value => 'simple' }
 }
 
 node generic_desktop {
@@ -430,9 +389,6 @@ node motokosony {
     owner    => $unix_user,
   }
 
-  git::config { 'user.name' : user => $unix_user, value => $unix_user }
-  git::config { 'user.email': user => $unix_user, value => $email }
-
   class { 'vim':
     user     => $unix_user,
     home_dir => $unix_home,
@@ -510,20 +466,6 @@ node motokosony {
   }
 }
 
-class profile::git(
-  $config,
-) {
-  create_resources('git::config', $config)
-}
-
-
-class profile::git(
-  $config,
-) {
-  create_resources('git::config', $config)
-}
-
-
 class profile::software(
   $ensure = present,
   $packages = [],
@@ -551,7 +493,7 @@ class profile::software(
     undef   => $packages,
     default => $hiera_packages,
   }
-  
+
   if $fin_packages {
     package { $fin_packages: ensure => $ensure }
   }
@@ -660,4 +602,3 @@ Wget::Fetch {
 node default {
     hiera_include('classes', [ 'stdlib' ])
 }
-
