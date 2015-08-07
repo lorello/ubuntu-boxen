@@ -100,11 +100,14 @@ profile::software::packages:
     - 'pwgen'
     - 'syslinux-utils'                 # contains md5pass to encrypt unix password
     - 'tcpdump'
+    - 'traceroute'
+    - 'nmap'
     - 'dkms'
     - 'gedit'
     - 'deja-dup'
     - 'deja-dup-backend-s3'
     - 'ruby'
+    - 'playonlinux'
 
 profile::software::gems:
     - 'r10k'
@@ -123,6 +126,9 @@ profile::software::ppas:
     'webupd8team/sublime-text-3':
         packages:
             - 'sublime-text-installer'
+    'webupd8team/java':
+        packages:
+            - 'oracle-java6-installer'
 
 profile::software::repos:
     'canonical-partner':
@@ -149,6 +155,11 @@ profile::software::repos:
         key:        '7B0FAB3A13B907435925D9C954422A4B98AB5139'
         packages:
             - 'virtualbox'
+    'playonlinux':
+        location:   'http://deb.playonlinux.com/'
+        release:    'trusty'
+        repos:      'main'
+        key:        'E0F72778C4676186'
 
 ssh::storeconfigs_enabled: false
 ssh::client_options:

@@ -46,15 +46,7 @@ class profile::docker {
 # Puppet dev environment
 class profile::puppet::developer {
 
-    if ! defined(Package['libxslt-dev']) {
-        package{ 'libxslt-dev': ensure => installed }
-    }
-    if ! defined(Package['libxml2-dev']) {
-        package{ 'libxml2-dev' : ensure => installed }
-    }
-    if ! defined(Package['ruby-dev']) {
-        package{ 'ruby-dev' : ensure => installed }
-    }
+    ensure_packages(['libxslt-dev', 'libxml2-dev', 'ruby-dev'])
 
     package { [ 'puppet-syntax', 'puppet-lint' ]:
         provider => 'gem',
@@ -516,7 +508,7 @@ class profile::software(
   }
 
   if $fin_packages {
-    package { $fin_packages: ensure => $ensure }
+    ensure_packages([ $fin_packages ])
   }
 
   # merge ppas from hiera
@@ -541,6 +533,9 @@ class profile::software(
   }
 
   if $fin_gems {
+
+    ensure_packages(['ruby', 'ruby-dev', 'ruby-libxml'])
+
     package { $fin_gems:
         ensure   => $ensure,
         provider => 'gem',
@@ -565,7 +560,8 @@ define profile::software::ppa(
 
     if $packages {
         package { $packages:
-            ensure => $ensure
+            ensure  => $ensure,
+            require => Apt::Ppa["ppa:${name}"],
         }
     }
 }
