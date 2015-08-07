@@ -1,3 +1,24 @@
+
+# Picasa
+class profile::picasa ()
+{
+    include archive
+
+    ensure_packages(['wine',  'winetricks'])
+
+    exec { 'winetricks -q ie8':
+      environment => 'WINEARCH=win32 WINEPREFIX=~/.google/picasa/3.0/',
+      require     => Package['winetricks'],
+    }->
+    archive { '/tmp/picasa.exe':
+      source => 'http://dl.google.com/picasa/picasa39-setup.exe',
+    }->
+    exec { 'wine /tmp/picasa39-setup /S /L':
+      
+    }
+
+}
+
 # Look at here for ideas:
 # https://sites.google.com/site/bmaupinwiki/home/operating-systems/gnu-linux/ubuntuelementary/ubuntu-gsettings-dconf
 class profile::gnome::backup {

@@ -80,6 +80,8 @@ profile::software::packages:
     - 'htop'
     - 'openvpn'
     - 'network-manager-openvpn' #http://howto.praqma.net/ubuntu/vpn/openvpn-access-server-client-on-ubuntu
+    - 'openconnect'
+    - 'network-manager-openconnect'
     - 'nautilus-compare'
     - 'nautilus-script-audio-convert'
     - 'nautilus-script-manager'
