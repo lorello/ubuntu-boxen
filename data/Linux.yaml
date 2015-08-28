@@ -78,6 +78,7 @@ profile::software::packages:
     - 'nethogs'
     - 'sysdig'
     - 'htop'
+    - 'moreutils'
     - 'openvpn'
     - 'network-manager-openvpn' #http://howto.praqma.net/ubuntu/vpn/openvpn-access-server-client-on-ubuntu
     - 'openconnect'
@@ -101,7 +102,6 @@ profile::software::packages:
     - 'syslinux-utils'                 # contains md5pass to encrypt unix password
     - 'tcpdump'
     - 'traceroute'
-    - 'nmap'
     - 'dkms'
     - 'gedit'
     - 'deja-dup'
@@ -129,6 +129,9 @@ profile::software::ppas:
     'webupd8team/java':
         packages:
             - 'oracle-java6-installer'
+    'peterlevi/ppa':
+        packages:
+            - 'variety'
 
 profile::software::repos:
     'canonical-partner':
