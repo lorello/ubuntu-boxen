@@ -108,6 +108,7 @@ profile::software::packages:
     - 'deja-dup-backend-s3'
     - 'ruby'
     - 'playonlinux'
+    - 'bikeshed'
 
 profile::software::gems:
     - 'r10k'
