@@ -58,7 +58,7 @@ class profile::docker {
 # Puppet dev environment
 class profile::puppet::developer {
 
-    ensure_packages(['libxslt-dev', 'libxml2-dev', 'ruby-dev'])
+    ensure_packages(['libxslt-dev', 'libxml2-dev', 'ruby-dev', 'zlib1g-dev' ])
 
     package { [ 'puppet-syntax', 'puppet-lint' ]:
         provider => 'gem',
@@ -546,6 +546,8 @@ class profile::software(
 
   if $fin_gems {
 
+    # common requirements for ruby gems compilation
+    ensure_packages(['libxslt-dev', 'libxml2-dev', 'zlib1g-dev' ])
     ensure_packages(['ruby', 'ruby-dev', 'ruby-libxml'])
 
     package { $fin_gems:
