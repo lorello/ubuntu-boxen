@@ -39,6 +39,7 @@ class profile::docker {
     class { '::docker':
         #version => 'latest',
         docker_users => [ $profile::owner::username ],
+        dns => '192.168.1.1',
     }
 
     # 25/8/2015 lorello
