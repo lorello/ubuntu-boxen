@@ -133,6 +133,12 @@ profile::software::ppas:
     'peterlevi/ppa':
         packages:
             - 'variety'
+    'eugenesan/ppa':
+        packages:
+            - 'smartgit'
+    'git-core/ppa':
+        packages:
+            - 'git'
 
 profile::software::repos:
     'canonical-partner':
