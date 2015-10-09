@@ -170,6 +170,10 @@ profile::software::repos:
         release:    'trusty'
         repos:      'main'
         key:        'E0F72778C4676186'
+    'wolfgang42-vagrant':
+        location:   'http://vagrant-deb.linestarve.com/'
+        repos:      'main'
+        key:        'AD319E0F7CFFA38B4D9F6E55CE3F3DE92099F7A4'
 
 ssh::storeconfigs_enabled: false
 ssh::client_options:
