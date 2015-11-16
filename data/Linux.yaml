@@ -139,6 +139,9 @@ profile::software::ppas:
     'git-core/ppa':
         packages:
             - 'git'
+    'ansible/ansible':
+        packages:
+            - 'ansible'
 
 profile::software::repos:
     'canonical-partner':
