@@ -13,7 +13,7 @@ sudo apt-get update -y -q
 sudo apt-get install git puppet-common hiera -y -q
 
 # Get & run librarian-puppet
-sudo gem install r10k 
+sudo gem install r10k
 # Download uboxen code
 cd /opt
 [ ! -d /opt/ubuntu-boxen ] && sudo git clone --recursive https://github.com/lorello/ubuntu-boxen.git
