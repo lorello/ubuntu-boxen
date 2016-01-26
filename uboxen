@@ -9,6 +9,17 @@ function etckeep()
 
 #MYPATH=$(dirname $0)
 
+PUPPET=$(which puppet)
+
+if [ -z "$PUPPET" ]; then
+    if [ -x /opt/puppetlabs/puppet/bin/puppet ]; then
+        PUPPET=/opt/puppetlabs/puppet/bin/puppet
+    else
+        echo "Missing puppet executable"
+        exit 1
+    fi
+fi
+
 etckeep "Before uBoxen run"
 cd /opt/ubuntu-boxen && sudo r10k puppetfile install
 #sudo puppet apply $MYPATH/uboxen.pp
