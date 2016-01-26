@@ -10,7 +10,7 @@ sudo dpkg -i puppetlabs-release-$DISTRO.deb
 sudo apt-get update -y -q
 
 # Install puppet without the agent init script
-sudo apt-get install git puppet-common hiera -y -q
+sudo apt-get install git puppet-agent -y -q
 
 # Get & run librarian-puppet
 sudo gem install r10k
@@ -19,7 +19,7 @@ cd /opt
 [ ! -d /opt/ubuntu-boxen ] && sudo git clone --recursive https://github.com/lorello/ubuntu-boxen.git
 cd /opt/ubuntu-boxen
 sudo r10k puppetfile install
-sudo puppet apply install.pp
+sudo /opt/puppetlabs/puppet/bin/puppet apply install.pp
 
 # Finish
 echo -e "\n\nInstallation ended successfully (I hope).\n\nEnjoy Ubuntu Boxen running 'uboxen' at your shell prompt"
